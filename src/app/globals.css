@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   MenuFlex design tokens
+   ------------------------------------------------------------------ */
+:root {
+  --ivory-50: #f8f2e8;
+  --ivory-100: #f3ece1;
+  --ivory-200: #ece4d8;
+  --ivory-300: #e2d9cb;
+  --ink: #1b1915;
+  --ink-soft: #4a463f;
+  --ink-muted: #8a847a;
+  --coral: #ef7a62;
+  --coral-deep: #e0644b;
+}
+
+@theme inline {
+  --color-ivory-50: var(--ivory-50);
+  --color-ivory-100: var(--ivory-100);
+  --color-ivory-200: var(--ivory-200);
+  --color-ivory-300: var(--ivory-300);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-newsreader);
+}
+
+html {
+  background: var(--ivory-200);
+}
+
+body {
+  background: var(--ivory-200);
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Warm studio backdrop: window light from the upper right, a soft table
+   plane in the lower half and diagonal light falloff. Pure CSS so it
+   scales to any viewport without banding from a raster. */
+.studio-backdrop {
+  background:
+    radial-gradient(60% 55% at 88% 8%, rgba(255, 250, 240, 0.85) 0%, rgba(255, 250, 240, 0) 70%),
+    radial-gradient(70% 60% at 30% 95%, rgba(250, 244, 234, 0.9) 0%, rgba(250, 244, 234, 0) 70%),
+    linear-gradient(172deg, #e6ded2 0%, #ebe4d9 38%, #f2ebe0 62%, #f4ede2 100%);
+}
+
+.studio-backdrop::before {
+  /* diagonal sun shafts */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    118deg,
+    rgba(255, 252, 245, 0) 0px,
+    rgba(255, 252, 245, 0.22) 120px,
+    rgba(255, 252, 245, 0) 260px,
+    rgba(255, 252, 245, 0) 420px
+  );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%);
+  pointer-events: none;
+}
+
+.studio-backdrop::after {
+  /* fine paper grain to avoid gradient banding */
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .34 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
