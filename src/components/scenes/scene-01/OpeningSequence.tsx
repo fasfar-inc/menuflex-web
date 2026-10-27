@@ -1,32 +1,55 @@
 "use client";
 
-import { createContext, useContext, useMemo, useRef, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { createProgressStore, type ProgressStore } from "@/lib/progressStore";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
-const SequenceContext = createContext<ProgressStore | null>(null);
+type Sequence = {
+  /** Paper: the LIMAN menu opening (0–1). */
+  opening: ProgressStore;
+  /** Paper to digital: the open menu becoming the phone menu (0–1). */
+  digital: ProgressStore;
+  /** Reduced motion: no camera moves, the scene cross-fades instead. */
+  reduced: boolean;
+};
 
-/** Scroll progress (0–1) of the menu opening sequence. */
+const SequenceContext = createContext<Sequence | null>(null);
+
+export function useSequence() {
+  const seq = useContext(SequenceContext);
+  if (!seq) throw new Error("useSequence must be used inside <OpeningSequence>");
+  return seq;
+}
+
+/** Scroll progress (0–1) of the menu opening. */
 export function useOpeningProgress() {
-  const store = useContext(SequenceContext);
-  if (!store) throw new Error("useOpeningProgress must be used inside <OpeningSequence>");
-  return store;
+  return useSequence().opening;
 }
 
 /**
- * Pins the opening frame and maps scroll distance to a 0–1 progress value.
- * Desktop pins the whole first screen (header + hero); below `lg` the hero
- * is taller than the viewport, so only the menu stage is pinned.
- * Visitors who prefer reduced motion keep the static Scene 01 frame.
+ * Pins the first screen and maps scroll distance to the two chapters of the
+ * story: the menu opening, then its transformation into the digital menu.
+ * Pinned distances are in viewport heights. Desktop pins the whole first
+ * screen (header + hero); below `lg` the hero is taller than the viewport, so
+ * only the menu stage is pinned.
  */
+const DISTANCE = {
+  wide: { opening: 1.4, digital: 1.8 },
+  compact: { opening: 1.1, digital: 1.6 },
+  reduced: { digital: 1.0 },
+} as const;
+
 export function OpeningSequence({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
-  const store = useMemo(() => createProgressStore(0), []);
+  const opening = useMemo(() => createProgressStore(0), []);
+  const digital = useMemo(() => createProgressStore(0), []);
+  const [reduced, setReduced] = useState(false);
 
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
-      const build = (trigger: Element, start: string, distance: string) => {
+      const build = (trigger: Element, start: string, d: { opening?: number; digital: number }) => {
+        const total = (d.opening ?? 0) + d.digital;
         const tl = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
@@ -34,26 +57,41 @@ export function OpeningSequence({ children }: { children: ReactNode }) {
             pin: true,
             pinSpacing: true,
             start,
-            end: distance,
+            end: `+=${Math.round(total * 100)}%`,
             scrub: 0.9,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         });
-        const proxy = { p: 0 };
-        tl.to(proxy, { p: 1, duration: 1, onUpdate: () => store.set(proxy.p) }, 0)
-          .to("[data-scroll-hint]", { autoAlpha: 0, y: 8, duration: 0.12 }, 0.02);
+        const a = { p: 0 };
+        const b = { p: 0 };
+        if (d.opening) {
+          tl.to(a, { p: 1, duration: d.opening, onUpdate: () => opening.set(a.p) }, 0);
+          tl.to("[data-scroll-hint]", { autoAlpha: 0, y: 8, duration: 0.12 * d.opening }, 0.02 * d.opening);
+        }
+        tl.to(b, { p: 1, duration: d.digital, onUpdate: () => digital.set(b.p) }, d.opening ?? 0);
         return () => {
-          store.set(0);
+          opening.set(0);
+          digital.set(0);
         };
       };
 
       mm.add("(prefers-reduced-motion: no-preference) and (min-width: 1024px)", () =>
-        build(root.current!, "top top", "+=140%"),
+        build(root.current!, "top top", DISTANCE.wide),
       );
       mm.add("(prefers-reduced-motion: no-preference) and (max-width: 1023.98px)", () => {
         const stage = root.current!.querySelector("[data-menu-pin]");
-        return stage ? build(stage, "center center", "+=110%") : undefined;
+        return stage ? build(stage, "center center", DISTANCE.compact) : undefined;
+      });
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        setReduced(true);
+        const wide = window.matchMedia("(min-width: 1024px)").matches;
+        const trigger = wide ? root.current! : root.current!.querySelector("[data-menu-pin]");
+        const undo = trigger ? build(trigger, wide ? "top top" : "center center", DISTANCE.reduced) : undefined;
+        return () => {
+          setReduced(false);
+          undo?.();
+        };
       });
 
       // Fonts and images can change layout height after first paint.
@@ -64,8 +102,10 @@ export function OpeningSequence({ children }: { children: ReactNode }) {
     { scope: root },
   );
 
+  const value = useMemo(() => ({ opening, digital, reduced }), [opening, digital, reduced]);
+
   return (
-    <SequenceContext.Provider value={store}>
+    <SequenceContext.Provider value={value}>
       <div ref={root} className="relative">
         {children}
       </div>

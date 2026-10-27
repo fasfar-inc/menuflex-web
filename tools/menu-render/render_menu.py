@@ -424,6 +424,70 @@ def pose(u):
     return dict(theta=theta, book_q=book_q, book_p=book_p, cam_p=cam_p, cam_r=cam_r)
 
 
+# ----------------------------------------------------------------------------
+# phase B: from the open spread into the printed MAINS column (the future phone screen)
+# ----------------------------------------------------------------------------
+
+NB_FRAMES = 72
+# MAINS column of the right page, in page-texture coordinates (u from the spine, v from the top)
+COLUMN_U = (0.57, 0.94)
+COLUMN_V = (0.03, 0.90)
+PHONE_PX = (1190.0, 476.0)      # centre of the phone screen in the mockup frame
+PHONE_SCREEN_H = 660.0          # phone screen height in mockup-frame pixels
+
+
+def column_centre_model(bloom, lift):
+    """Centre of the MAINS column on the page surface, in rig coordinates."""
+    bw, bh = W - OV, H - 2 * OV
+    x = 0.5 * (COLUMN_U[0] + COLUMN_U[1]) * bw
+    y = (0.5 - 0.5 * (COLUMN_V[0] + COLUMN_V[1])) * bh
+    top = (TP - 0.003) + float(page_curve(np.array(x), bw)) * bloom + lift * math.exp(-x / 0.05)
+    z = -T + TB + 0.0015 + top
+    return np.array([x, y, z])
+
+
+def column_size():
+    return ((COLUMN_U[1] - COLUMN_U[0]) * (W - OV), (COLUMN_V[1] - COLUMN_V[0]) * (H - 2 * OV))
+
+
+D_PHONE = column_size()[1] * F / PHONE_SCREEN_H
+
+
+def page_shape(theta):
+    bloom = 0.1 + 0.9 * smooth(span(theta, math.radians(70), math.radians(166)))
+    lift = 0.006 * math.sin(math.pi * span(theta, math.radians(85), math.radians(176)))
+    return bloom, lift
+
+
+def mat_to_quat(m):
+    return Matrix(m.tolist()).to_quaternion()
+
+
+def pose_b(s):
+    """s in (0, 1]: the open menu turns to face the viewer while the camera moves in."""
+    a = pose(1.0)
+    theta = THETA_END
+    bloom, lift = page_shape(theta)
+    turn = smoother(span(s, 0.0, 0.85))
+    book_q = a["book_q"].slerp(Quaternion(), turn)
+    book_p = a["book_p"]
+    centre = book_p + np.array(book_q.to_matrix()) @ column_centre_model(bloom, lift)
+    # final camera: square to the page, the column filling the phone screen
+    off = np.array([(PHONE_PX[0] - CX) / F * D_PHONE, -(PHONE_PX[1] - CY) / F * D_PHONE, -D_PHONE])
+    end_q = Quaternion()
+    c_end = (book_p + column_centre_model(bloom, lift)) - off
+    move = smoother(span(s, 0.0, 1.0))
+    cam_p = a["cam_p"] + (c_end - a["cam_p"]) * move
+    # keep the column on a smooth screen path from where it sits on the open spread to the phone position
+    c0 = (centre_start := a["book_p"] + np.array(a["book_q"].to_matrix()) @ column_centre_model(bloom, lift)) - a["cam_p"]
+    c0 = c0 @ a["cam_r"]
+    start_px = (CX + F * c0[0] / -c0[2], CY - F * c0[1] / -c0[2])
+    k = smoother(span(s, 0.0, 0.92))
+    px = (start_px[0] + (PHONE_PX[0] - start_px[0]) * k, start_px[1] + (PHONE_PX[1] - start_px[1]) * k)
+    cam_r = aim(cam_p, centre, px)
+    return dict(theta=theta, book_q=book_q, book_p=book_p, cam_p=cam_p, cam_r=cam_r, centre=centre)
+
+
 def aim(cam_p, target, px):
     """Roll-free camera rotation Ry(yaw) Rx(pitch) that puts `target` at pixel `px`."""
     dc = np.array([(px[0] - CX) / F, -(px[1] - CY) / F, -1.0])
@@ -550,8 +614,8 @@ def build(scale, samples, exposure):
     return dict(scene=sc, cam=cam, rig=rig, hinge=hinge, block=block, insert=insert, band=band)
 
 
-def apply(objs, u):
-    st = pose(u)
+def apply(objs, u, phase="a"):
+    st = pose(u) if phase == "a" else pose_b(u)
     rig, hinge, cam = objs["rig"], objs["hinge"], objs["cam"]
     rig.matrix_world = to_matrix(np.array(st["book_q"].to_matrix()), st["book_p"])
     cam.matrix_world = to_matrix(st["cam_r"], st["cam_p"])
@@ -560,8 +624,7 @@ def apply(objs, u):
     hinge.rotation_euler = (0, -th, 0)
 
     # pages: pressed flat while the cover is near closed, bloom as it opens
-    bloom = 0.1 + 0.9 * smooth(span(th, math.radians(70), math.radians(166)))
-    lift = 0.006 * math.sin(math.pi * span(th, math.radians(85), math.radians(176)))
+    bloom, lift = page_shape(th)
     objs["block"].update(bloom, gutter_lift=lift)
     objs["insert"].update(0.35 * bloom)
 
@@ -580,15 +643,18 @@ def main():
     ap.add_argument("--exposure", type=float, default=0.0)
     ap.add_argument("--frames", default="all")
     ap.add_argument("--skip-existing", action="store_true")
+    ap.add_argument("--phase", default="a", choices=["a", "b"])
     a, _ = ap.parse_known_args()
     os.makedirs(a.out, exist_ok=True)
     objs = build(a.scale, a.samples, a.exposure)
-    frames = range(N_FRAMES) if a.frames == "all" else [int(f) for f in a.frames.split(",")]
+    count = N_FRAMES if a.phase == "a" else NB_FRAMES
+    frames = range(count) if a.frames == "all" else [int(f) for f in a.frames.split(",")]
     for i in frames:
         path = os.path.join(a.out, f"{i:04d}.png")
         if a.skip_existing and os.path.exists(path):
             continue
-        apply(objs, i / (N_FRAMES - 1))
+        # phase B starts one step after the last opening frame
+        apply(objs, i / (N_FRAMES - 1) if a.phase == "a" else (i + 1) / NB_FRAMES, a.phase)
         objs["scene"].render.filepath = path
         bpy.ops.render.render(write_still=True)
         print("frame", i, flush=True)

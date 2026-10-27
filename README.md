@@ -37,9 +37,12 @@ src/
     ui/                    # Shared primitives (Button)
     menu/                  # The LIMAN menu: photo object, geometry, opening sequence player
       sequence/            # Scroll-scrubbed frame player for the rendered opening
+    digital-menu/          # LIMAN's interactive digital menu (real HTML, phone-sized)
     scenes/
-      scene-01/            # "Paper" hero: headline, menu stage, chapter rail
+      scene-01/            # "Paper" hero: headline, menu stage, chapter rail, scroll pin
+      scene-02/            # "Paper to digital": the phone emerging from the printed page
   content/site.ts          # All copy and nav data (ready for TR/EN)
+  content/limanMenu.ts     # LIMAN dishes, shared by the printed and digital menus
   lib/gsap.ts              # GSAP + ScrollTrigger registration
   lib/progressStore.ts     # Tiny store that passes scroll progress to the sequence player
 tools/menu-render/         # Blender (Cycles) model + render of the menu opening
@@ -82,26 +85,61 @@ Scrolling from the first screen pins the hero and plays the opening of the LIMAN
    the hardcover turns on its cloth joint with natural acceleration and settles back
    a few degrees. Pages bloom from pressed-flat into an open-book curve and the first
    sheets lift at the gutter. The book straightens while the camera eases in and then
-   pulls back to frame the spread at a three-quarter angle. Neighbouring frames are
-   cross-blended so slow scrolling stays smooth.
+   pulls back to frame the spread at a three-quarter angle.
 
 Why pre-rendered: the model needs physically based light (soft area-light shadows,
 bounce light, cloth sheen, contact shadow on the table), and a browser can't compute
 that in real time on every device. The frames carry transparent backgrounds and the
 menu's shadow on the table, and they are composited over the CSS studio backdrop.
 
-Delivery: two WebP sets in `public/scene-01/opening/` (`hi` ≈ 6.5 MB for desktop and
-high-DPI screens, `lo` ≈ 2.4 MB for phones). They stream after the page has loaded,
-first frame first and then progressively finer passes. Visitors who prefer reduced
-motion keep the static Scene 01 frame and download none of it.
+Delivery: two WebP sets in `public/scene-01/opening/` (`hi` for desktop and high-DPI
+screens, `lo` for phones). They stream after the page has loaded, first frame first and
+then progressively finer passes.
+
+## Step 3: from paper to digital
+
+The same pin continues after the opening (desktop: 140% of the viewport for the opening,
+then 180% for this chapter). Progress is a second value from `OpeningSequence`, and the
+timings live in `DIGITAL` in `scenes/scene-02/PhoneReveal.tsx`.
+
+1. **Camera move** (rendered, frames 96–167). The open menu turns square to the viewer
+   while the camera moves in, until the printed MAINS column fills the phone screen
+   (`PHONE_SCREEN` in the mockup frame). A soft mask closes around that area, so the rest
+   of the paper fades away and never reaches the headline column.
+2. **Handover.** The digital menu fades in exactly over the printed column. Its "paper"
+   state uses the paper colours, and its Mains section is laid out like the print, with
+   the same photographs, dish rows and rule in the same positions.
+3. **Paper becomes screen.** Colours move from paper to deep black, the status bar,
+   LIMAN brand row and sticky categories fade in, the content settles under them, the
+   screen corners round off, and the phone frame forms around it. On phones the device
+   then grows to a comfortable size in the viewport.
+4. **Interactive.** At the end of the pin the menu takes pointer input: the category tabs
+   scroll to their section, and the active tab follows the scroll. The menu scrolls
+   inside the phone with `overscroll-behavior: contain`, so it never drives the page.
+
+The digital menu (`components/digital-menu/DigitalMenu.tsx`) is real HTML at 390×836
+logical pixels, scaled to fit. Its content comes from `content/limanMenu.ts`.
+
+Reduced motion: there is no camera movement and no frames are downloaded. The pin stays,
+and the approved photo cross-fades straight to the finished phone.
+
+Photography: the only dish photographs available are the octopus, sea bass and
+tagliatelle from the approved mockup. Other dishes are text rows. To add photos, put
+licensed images in `public/digital-menu/` and add `photo` to the dish in
+`content/limanMenu.ts`.
 
 ### Re-rendering
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install bpy==5.2.3
 .venv/bin/python tools/menu-render/render_menu.py --out /tmp/frames --scale 1.15 --samples 40
-python3 tools/menu-render/encode_frames.py /tmp/frames   # needs Pillow
+.venv/bin/python tools/menu-render/render_menu.py --phase b --out /tmp/frames_b --scale 1.15 --samples 40
+python3 tools/menu-render/encode_frames.py /tmp/frames --shadow 0.5               # needs Pillow
+python3 tools/menu-render/encode_frames.py /tmp/frames_b --shadow 0.5 --offset 96
 ```
+
+The opening frames in the repo were rendered before a lens-shift fix and were encoded
+with `--shift=-56.6,4.1` (a pure image translation). Fresh renders don't need it.
 
 `render_menu.py` builds the whole scene in code: bevelled cloth boards, the page block
 with layered sheet edges, the cloth spine and joint, the inserts, the materials,

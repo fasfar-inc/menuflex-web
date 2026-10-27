@@ -1,21 +1,54 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { limanMenu } from "@/components/menu/limanMenu";
 import { MenuObject } from "@/components/menu/MenuObject";
 import { MenuSequence } from "@/components/menu/sequence/MenuSequence";
-import { CANVAS_VIEW, STAGE_VIEW as stage } from "@/components/menu/sequence/openingFrames";
+import { CANVAS_VIEW, STAGE_VIEW as stage, openingFrames } from "@/components/menu/sequence/openingFrames";
+import { DIGITAL, PHONE_SCREEN, PhoneReveal } from "@/components/scenes/scene-02/PhoneReveal";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { useOpeningProgress } from "./OpeningSequence";
+import { useSequence } from "./OpeningSequence";
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const span = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 
 /** Dissolve window from the approved photograph to the rendered sequence. */
 const DISSOLVE = [0.012, 0.06] as const;
-/** Scroll progress -> sequence time. Frame 0 is held through the dissolve. */
-const toFrame = (p: number) => span(p, 0.03, 0.97);
+const smoother = (t: number) => t * t * t * (t * (6 * t - 15) + 10);
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/** Scroll progress -> frame index (0–1 across all frames). Frame 0 is held through the dissolve. */
+function sequenceTime(p: number, q: number) {
+  const { count, opening } = openingFrames;
+  if (q <= 0) return (span(p, 0.03, 0.97) * (opening - 1)) / (count - 1);
+  return (opening - 1 + span(q, ...DIGITAL.frames) * (count - opening)) / (count - 1);
+}
+
+// the phone screen inside the canvas box (fractions), where the soft window closes
+const win = {
+  l: (PHONE_SCREEN.x - CANVAS_VIEW.x) / CANVAS_VIEW.width,
+  r: (PHONE_SCREEN.x + PHONE_SCREEN.width - CANVAS_VIEW.x) / CANVAS_VIEW.width,
+  t: (PHONE_SCREEN.y - CANVAS_VIEW.y) / CANVAS_VIEW.height,
+  b: (PHONE_SCREEN.y + PHONE_SCREEN.height - CANVAS_VIEW.y) / CANVAS_VIEW.height,
+};
+/** Left limit of the menu's area: never let paper reach the headline column. */
+const TEXT_EDGE = (690 - CANVAS_VIEW.x) / CANVAS_VIEW.width;
+
+/** Soft window that closes around the phone screen as the camera moves in. */
+function pageMask(q: number) {
+  const w = smoother(span(q, 0.08, 0.6));
+  const f = lerp(0.07, 0.012, w); // feather
+  const l = lerp(TEXT_EDGE, win.l, w);
+  const r = lerp(1.02, win.r, w);
+  const t = lerp(-0.02, win.t, w);
+  const b = lerp(1.02, win.b, w);
+  const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+  return (
+    `linear-gradient(to right, transparent ${pct(l)}, #000 ${pct(l + f)}, #000 ${pct(r - f)}, transparent ${pct(r)}),` +
+    `linear-gradient(to bottom, transparent ${pct(t)}, #000 ${pct(t + f)}, #000 ${pct(b - f)}, transparent ${pct(b)})`
+  );
+}
 
 // canvas box relative to the stage box
 const canvasBox = {
@@ -31,9 +64,10 @@ const canvasBox = {
  *   2. contact shadow on the table, reacting to the menu's height
  *   3. the approved photograph of the menu (opening frame)
  *   4. the rendered opening sequence, which takes over as the visitor scrolls
+ *   5. the phone with the live digital menu, emerging from the printed page
  */
 export function MenuStage() {
-  const store = useOpeningProgress();
+  const { opening: store, digital, reduced } = useSequence();
   const root = useRef<HTMLDivElement>(null);
   const floatRef = useRef<HTMLDivElement>(null);
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -62,10 +96,25 @@ export function MenuStage() {
   }, []);
 
   const apply = useCallback(
-    (p: number) => {
+    () => {
+      const p = store.get();
+      const q = digital.get();
+      if (reduced) {
+        // no camera moves: the approved photo simply gives way to the phone
+        const fade = String(1 - span(q, 0.2, 0.5));
+        if (photoRef.current) photoRef.current.style.opacity = fade;
+        if (shadowFade.current) shadowFade.current.style.opacity = fade;
+        return;
+      }
       const mix = ready.current ? span(p, DISSOLVE[0], DISSOLVE[1]) : 0;
       if (photoRef.current) photoRef.current.style.opacity = String(1 - mix);
-      if (canvasRef.current) canvasRef.current.style.opacity = String(mix);
+      const c = canvasRef.current;
+      if (c) {
+        c.style.opacity = String(mix * (1 - span(q, ...DIGITAL.render)));
+        const mask = q > 0 ? pageMask(q) : "none";
+        c.style.maskImage = mask;
+        c.style.setProperty("-webkit-mask-image", mask);
+      }
       // the rendered frames carry their own shadow on the table
       if (shadowFade.current) shadowFade.current.style.opacity = String(1 - mix);
 
@@ -80,15 +129,26 @@ export function MenuStage() {
         tl.resume();
       }
     },
-    [],
+    [store, digital, reduced],
   );
 
-  useEffect(() => store.subscribe(apply), [store, apply]);
+  useEffect(() => {
+    const a = store.subscribe(apply);
+    const b = digital.subscribe(apply);
+    apply();
+    return () => {
+      a();
+      b();
+    };
+  }, [store, digital, apply]);
 
   const onReady = useCallback(() => {
     ready.current = true;
-    apply(store.get());
-  }, [apply, store]);
+    apply();
+  }, [apply]);
+
+  const stores = useMemo(() => [store, digital], [store, digital]);
+  const frameAt = useCallback(() => sequenceTime(store.get(), digital.get()), [store, digital]);
 
   useGSAP(
     () => {
@@ -169,12 +229,15 @@ export function MenuStage() {
             </div>
             {loadFrames && (
               <div ref={canvasRef} data-menu-3d className="absolute" style={{ ...canvasBox, opacity: 0 }}>
-                <MenuSequence store={store} toFrame={toFrame} onReady={onReady} />
+                <MenuSequence stores={stores} frameAt={frameAt} onReady={onReady} />
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* chapter 2: the printed MAINS column becomes LIMAN's digital menu */}
+      <PhoneReveal />
     </div>
   );
 }

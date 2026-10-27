@@ -19,13 +19,14 @@ function loadOrder(count: number) {
  * back to the nearest loaded one.
  */
 export function MenuSequence({
-  store,
-  toFrame,
+  stores,
+  frameAt,
   onReady,
 }: {
-  store: ProgressStore;
-  /** Maps scroll progress (0–1) to sequence time (0–1). */
-  toFrame: (p: number) => number;
+  /** Stores whose changes should redraw the sequence. */
+  stores: ProgressStore[];
+  /** Current sequence time (0–1 across all frames). */
+  frameAt: () => number;
   onReady: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,7 +60,7 @@ export function MenuSequence({
 
     const draw = () => {
       raf = 0;
-      const i = Math.round(toFrame(store.get()) * (count - 1));
+      const i = Math.round(frameAt() * (count - 1));
       const img = nearest(i);
       if (!img || img === shown) return;
       shown = img;
@@ -96,13 +97,13 @@ export function MenuSequence({
     };
     for (let k = 0; k < 4; k++) next();
 
-    const unsubscribe = store.subscribe(schedule);
+    const unsubscribe = stores.map((st) => st.subscribe(schedule));
     return () => {
       disposed = true;
-      unsubscribe();
+      unsubscribe.forEach((u) => u());
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [store, toFrame, onReady]);
+  }, [stores, frameAt, onReady]);
 
   return <canvas ref={canvasRef} aria-hidden="true" className="block h-full w-full" />;
 }

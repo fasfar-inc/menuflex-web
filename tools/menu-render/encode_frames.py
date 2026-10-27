@@ -3,12 +3,13 @@ Encodes rendered PNG frames into the two WebP sets the site streams:
   hi -> desktop / high-DPI (render resolution)
   lo -> phones and small stages (half resolution)
 
-    python encode_frames.py ./frames [--shift DX,DY] [--shadow 0.5]
+    python encode_frames.py ./frames [--shift DX,DY] [--shadow 0.5] [--offset N]
 
 --shift  moves every frame by DX,DY mockup-frame pixels (corrects a lens-shift
          error in renders made before the camera fix; a lens shift is a pure
          image translation).
 --shadow scales the opacity of the table shadow.
+--offset adds N to frame numbers (phase B frames continue after the opening).
 """
 
 import argparse
@@ -35,14 +36,14 @@ def process(im, shift, shadow):
     return out
 
 
-def main(src, shift, shadow):
+def main(src, shift, shadow, offset=0):
     files = sorted(glob.glob(os.path.join(src, "*.png")))
     for name in ("hi", "lo"):
         os.makedirs(os.path.join(OUT, name), exist_ok=True)
     total = {"hi": 0, "lo": 0}
     for f in files:
         im = process(Image.open(f).convert("RGBA"), shift, shadow)
-        base = os.path.splitext(os.path.basename(f))[0] + ".webp"
+        base = f"{int(os.path.splitext(os.path.basename(f))[0]) + offset:04d}.webp"
         hi = os.path.join(OUT, "hi", base)
         im.save(hi, "WEBP", quality=80, method=6, alpha_quality=70)
         lo = os.path.join(OUT, "lo", base)
@@ -57,5 +58,6 @@ if __name__ == "__main__":
     ap.add_argument("src")
     ap.add_argument("--shift", default="0,0")
     ap.add_argument("--shadow", type=float, default=1.0)
+    ap.add_argument("--offset", type=int, default=0)
     a = ap.parse_args()
-    main(a.src, tuple(float(v) for v in a.shift.split(",")), a.shadow)
+    main(a.src, tuple(float(v) for v in a.shift.split(",")), a.shadow, a.offset)

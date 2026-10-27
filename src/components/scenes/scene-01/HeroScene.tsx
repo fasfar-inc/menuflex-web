@@ -46,8 +46,8 @@ export function HeroScene() {
         <MenuStage />
       </div>
 
-      <div className="relative z-10 order-1 mx-auto flex h-full w-full max-w-[1680px] flex-col px-5 pt-[120px] sm:px-8 lg:justify-center lg:px-[10%] lg:pt-[40px]">
-        <div className="max-w-[560px] lg:max-w-[40vw]">
+      <div className="pointer-events-none relative z-10 order-1 mx-auto flex h-full w-full max-w-[1680px] flex-col px-5 pt-[120px] sm:px-8 lg:justify-center lg:px-[10%] lg:pt-[40px]">
+        <div className="pointer-events-auto max-w-[560px] lg:max-w-[40vw]">
           <p data-reveal className="mb-8 text-[11px] font-medium tracking-[0.3em] text-ink-soft uppercase sm:text-[12px] sm:tracking-[0.42em] lg:mb-[2.6vw]">
             {heroCopy.eyebrow}
           </p>

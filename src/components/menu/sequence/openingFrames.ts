@@ -4,7 +4,9 @@
  * transparent backgrounds and the menu's shadow on the table baked in.
  */
 export const openingFrames = {
-  count: 96,
+  /** 96 frames of the opening, then 72 of the camera moving into the MAINS column. */
+  count: 168,
+  opening: 96,
   sets: [
     { name: "lo", width: 732, height: 525, dir: "/scene-01/opening/lo" },
     { name: "hi", width: 1463, height: 1049, dir: "/scene-01/opening/hi" },
