@@ -235,3 +235,26 @@ body {
     opacity 200ms ease-in,
     transform 200ms ease-in;
 }
+
+/* Interactive menu: candlelight in the background breathes, slowly. */
+@keyframes menu-glow {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.08);
+  }
+}
+
+.menu-glow {
+  animation: menu-glow 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-glow {
+    animation: none;
+  }
+}

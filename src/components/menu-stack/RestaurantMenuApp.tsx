@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
 import { DishWheel, MOTION_MS, REDUCED_MS } from "./DishWheel";
+import { MenuBackdrop } from "./MenuBackdrop";
 import { Price } from "./Price";
 import { BurgerIcon, CategoryIcon, CloseIcon, WaveMark } from "./icons";
 import { menuStrings } from "./strings";
@@ -109,6 +110,8 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
 
   return (
     <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[radial-gradient(90%_60%_at_50%_45%,#17130f_0%,#0b0907_60%,#070605_100%)] text-cream">
+      <MenuBackdrop />
+
       {/* header: full menu, restaurant, language */}
       <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),16px)] pb-4 min-[380px]:px-4 [@media(max-height:740px)]:pt-[max(env(safe-area-inset-top),8px)] [@media(max-height:740px)]:pb-2">
         <button

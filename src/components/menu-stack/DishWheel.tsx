@@ -223,7 +223,8 @@ export function DishWheel({
       onPointerCancel={onPointerCancel}
     >
       {size.w > 0 && (
-        <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: wheelH }}>
+        // the wheel fades out at its foot, onto whatever is behind the menu
+        <div className="absolute inset-x-0 top-0 overflow-hidden [mask-image:linear-gradient(to_bottom,#000_calc(100%-40px),transparent)]" style={{ height: wheelH }}>
           {/* the wheel */}
           <div
             aria-hidden="true"
@@ -297,7 +298,6 @@ export function DishWheel({
             <span className="truncate">{categoryLabel}</span>
           </div>
 
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-[70] h-8 bg-[linear-gradient(to_bottom,rgba(11,9,7,0),#0b0907)]" />
         </div>
       )}
 
