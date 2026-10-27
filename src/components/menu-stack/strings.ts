@@ -8,7 +8,6 @@ export const menuStrings: Record<
     languages: Record<MenuLocale, string>;
     categories: string;
     close: string;
-    viewPhoto: string;
     dishes: string;
     hint: string;
     position: (n: number, total: number) => string;
@@ -19,7 +18,6 @@ export const menuStrings: Record<
     languages: { en: "English", tr: "Türkçe" },
     categories: "Menu categories",
     close: "Close",
-    viewPhoto: "View photo",
     dishes: "Dishes",
     hint: "Scroll for next dish",
     position: (n, t) => `Dish ${n} of ${t}`,
@@ -29,7 +27,6 @@ export const menuStrings: Record<
     languages: { en: "English", tr: "Türkçe" },
     categories: "Menü kategorileri",
     close: "Kapat",
-    viewPhoto: "Fotoğrafı büyüt",
     dishes: "Yemekler",
     hint: "Sonraki yemek için kaydırın",
     position: (n, t) => `Yemek ${n} / ${t}`,

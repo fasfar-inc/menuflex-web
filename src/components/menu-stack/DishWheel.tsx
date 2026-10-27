@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
 import { Price } from "./Price";
-import { CategoryIcon, ExpandIcon } from "./icons";
-import { PhotoViewer } from "./PhotoViewer";
+import { Wordmark } from "@/components/brand/BrandLogo";
+import { CategoryIcon } from "./icons";
 import { menuStrings } from "./strings";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -25,9 +25,9 @@ const WHEEL_QUIET = 240;
 const WHEEL_MIN = 50;
 
 /** Angle between neighbouring plates around the wheel. */
-const STEP_DEG = 36;
+const STEP_DEG = 42;
 /** Plate diameter by distance from the selected one, as a share of the orbit radius. */
-const PLATE = [0.74, 0.56, 0.5, 0.46];
+const PLATE = [0.96, 0.54, 0.46, 0.42];
 /** Height of the dish details under the wheel. */
 const INFO_H = 132;
 
@@ -75,8 +75,6 @@ export function DishWheel({
   const [size, setSize] = useState({ w: 0, h: 0 });
   const indexRef = useRef(index);
   indexRef.current = index;
-  // the dish whose photograph is open, large
-  const [viewing, setViewing] = useState<Dish | null>(null);
 
   useLayoutEffect(() => {
     const el = stage.current;
@@ -203,9 +201,10 @@ export function DishWheel({
 
   // wheel geometry: orbit radius from the space, everything else in proportion
   const wheelH = Math.max(220, size.h - INFO_H);
-  // the selected plate's right edge stays clear of the screen edge
-  const r = Math.max(120, Math.min(size.w * 0.66, wheelH * 0.6, (size.w - 10) / 1.29));
-  const cx = -0.08 * r;
+  // the selected plate, big enough to see the dish, keeps its right edge clear of the screen edge
+  const r = Math.max(120, Math.min(size.w * 0.7, wheelH * 0.6, (size.w - 12) / 1.48));
+  // when height caps the wheel, it moves right so the category pill keeps clear of the plate
+  const cx = Math.max(0, size.w - 12 - 1.48 * r);
   const cy = wheelH / 2;
   const discR = 0.9 * r;
   const active = dishes[index];
@@ -237,6 +236,11 @@ export function DishWheel({
             }}
           />
 
+          {/* MenuFlex, large and soft, between the wheel and the plates */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <Wordmark className="text-[min(36vw,220px)] text-gold-bright opacity-[0.3] blur-[4px]" />
+          </div>
+
           {/* the plates around it */}
           {dishes.map((dish, i) => {
             const d = loop(i - pos, n);
@@ -253,14 +257,11 @@ export function DishWheel({
               <button
                 key={dish.id}
                 type="button"
-                tabIndex={selected && dish.photo ? 0 : -1}
-                aria-label={selected && dish.photo ? `${s.viewPhoto}: ${dish.name[locale]}` : dish.name[locale]}
+                tabIndex={-1}
+                aria-label={dish.name[locale]}
                 aria-current={selected ? "true" : undefined}
                 onClick={() => {
-                  if (gesture.current?.used) return;
-                  // the selected plate opens its photograph; any other plate turns the wheel to it
-                  if (!selected) go(i);
-                  else if (dish.photo && Math.abs(index - pos) < 0.02) setViewing(dish);
+                  if (!gesture.current?.used && !selected) go(i);
                 }}
                 className="absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
                 style={{
@@ -275,16 +276,6 @@ export function DishWheel({
                 }}
               >
                 <Plate dish={dish} icon={icon} selected={a < 0.5} priority={a < 1.5} />
-                {/* tells guests the selected photo opens */}
-                {dish.photo && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute right-[9%] bottom-[9%] flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(12_10_8/0.72)] text-cream shadow-[0_0_0_1px_rgba(236,196,132,0.5)] backdrop-blur-sm transition-opacity duration-300"
-                    style={{ opacity: a < 0.3 ? 1 : 0 }}
-                  >
-                    <ExpandIcon className="h-4 w-4" />
-                  </span>
-                )}
               </button>
             );
           })}
@@ -316,7 +307,6 @@ export function DishWheel({
           </div>
         </div>
       )}
-      {viewing && <PhotoViewer dish={viewing} locale={locale} reduced={reduced} onClose={() => setViewing(null)} />}
       <p aria-live="polite" className="sr-only">
         {active ? `${active.name[locale]}, ${active.price}. ${s.position(index + 1, n)}` : ""}
       </p>
@@ -341,7 +331,7 @@ function Plate({ dish, icon, selected, priority }: { dish: Dish; icon: CategoryI
           alt=""
           fill
           priority={priority}
-          sizes="(max-width: 480px) 50vw, 240px"
+          sizes="(max-width: 480px) 70vw, 320px"
           className="object-cover"
           style={{ objectPosition: dish.photo.position ?? "50% 55%" }}
           draggable={false}

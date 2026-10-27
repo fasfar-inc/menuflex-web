@@ -110,9 +110,9 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 `liman.ts`), registered in `src/content/menus/index.ts`. Photos go in
 `public/m/<slug>/` and are cut to a circle (top-down shots suit the wheel best);
-tapping the selected plate opens the whole photo full screen (✕, a tap
-outside, a swipe down or Escape closes it). A dish without one gets a bronze
-plate with its category emblem. Entries marked `demo: true` are kept out of search engines.
+the selected plate fills most of the width, so the dish reads without a tap.
+A dish without one gets a bronze plate with its category emblem; a large,
+soft MenuFlex wordmark sits behind the plates. Entries marked `demo: true` are kept out of search engines.
 LIMAN at `/m/liman/` is fictional and is never listed in Our Work.
 
 ## The QR code
