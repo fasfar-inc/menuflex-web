@@ -2,8 +2,11 @@ import Image from "next/image";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
 import { CategoryIcon } from "./icons";
 
-/** Height of the text panel under the photograph. */
-export const CARD_TEXT = 124;
+/** Corner radius shared by the card and its gold frame. */
+export const CARD_RADIUS = 22;
+
+/** Height of the text panel under the photograph, for a card of the given width. */
+const textHeight = (width: number) => Math.round(Math.min(124, Math.max(100, width * 0.34)));
 
 /**
  * One dish: a photograph with the name, price and description beneath it.
@@ -15,6 +18,7 @@ export function DishCard({
   icon,
   categoryLabel,
   text,
+  width,
   priority = false,
 }: {
   dish: Dish;
@@ -23,13 +27,16 @@ export function DishCard({
   categoryLabel: string;
   /** Opacity of the name, price and description. */
   text: number;
+  /** Card width in px; the text panel and type follow it. */
+  width: number;
   priority?: boolean;
 }) {
+  const panel = textHeight(width);
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-[26px] bg-[#0d0b09]">
+    <div className="relative h-full w-full overflow-hidden bg-[#0d0b09] [container-type:inline-size]" style={{ borderRadius: CARD_RADIUS }}>
       {/* the photograph, or a quiet emblem for dishes without one */}
       {/* behind the front card the photograph fills the whole card, so every peeking edge shows food */}
-      <div className="absolute inset-x-0 top-0" style={{ bottom: (CARD_TEXT - 34) * text, transition: "bottom var(--deck-t)" }}>
+      <div className="absolute inset-x-0 top-0" style={{ bottom: (panel - 34) * text, transition: "bottom var(--deck-t)" }}>
         {dish.photo ? (
           <Image
             src={dish.photo.src}
@@ -54,12 +61,12 @@ export function DishCard({
         />
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-[22px] pb-[22px]" style={{ height: CARD_TEXT, opacity: text, transition: "opacity var(--deck-t)" }}>
+      <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-[6cqw] pb-[6cqw]" style={{ height: panel, opacity: text, transition: "opacity var(--deck-t)" }}>
         <div className="flex items-baseline justify-between gap-4">
-          <h2 className="min-w-0 truncate font-serif text-[clamp(1.5rem,7vw,1.8rem)] leading-tight tracking-[-0.01em] text-cream">{dish.name[locale]}</h2>
-          <Price value={dish.price} className="shrink-0 font-serif text-[clamp(1.4rem,6.4vw,1.7rem)] text-cream" />
+          <h2 className="min-w-0 truncate font-serif text-[clamp(20px,7.6cqw,29px)] leading-tight tracking-[-0.01em] text-cream">{dish.name[locale]}</h2>
+          <Price value={dish.price} className="shrink-0 font-serif text-[clamp(19px,7cqw,27px)] text-cream" />
         </div>
-        <p className="mt-2 line-clamp-2 text-[15.5px] leading-[1.5] font-light text-cream-soft">{dish.description[locale]}</p>
+        <p className="mt-[2cqw] line-clamp-2 text-[clamp(13.5px,4.3cqw,16px)] leading-[1.5] font-light text-cream-soft">{dish.description[locale]}</p>
       </div>
     </div>
   );

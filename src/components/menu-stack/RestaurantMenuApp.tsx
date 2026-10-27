@@ -110,7 +110,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   return (
     <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[radial-gradient(90%_60%_at_50%_45%,#17130f_0%,#0b0907_60%,#070605_100%)] text-cream">
       {/* header: full menu, restaurant, language */}
-      <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),16px)] pb-4 min-[380px]:px-4">
+      <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),16px)] pb-4 min-[380px]:px-4 [@media(max-height:740px)]:pt-[max(env(safe-area-inset-top),8px)] [@media(max-height:740px)]:pb-2">
         <button
           type="button"
           onClick={() => setOverview(true)}
@@ -121,11 +121,11 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           <BurgerIcon className="h-7 w-7" />
         </button>
         <div className="flex min-w-0 flex-col items-center">
-          <WaveMark className="h-[17px] w-[64px] text-[#d9a55a]" />
-          <h1 className="mt-1 bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-display text-[clamp(2.1rem,10vw,2.6rem)] leading-none font-semibold tracking-[0.02em] text-transparent">
+          <WaveMark className="h-[17px] w-[64px] text-[#d9a55a] [@media(max-height:740px)]:h-[13px] [@media(max-height:740px)]:w-[50px]" />
+          <h1 className="mt-1 bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-display text-[clamp(2.1rem,10vw,2.6rem)] leading-none [@media(max-height:740px)]:text-[2rem] font-semibold tracking-[0.02em] text-transparent">
             {menu.name}
           </h1>
-          <p className="mt-1.5 text-[10.5px] font-medium tracking-[0.24em] whitespace-nowrap text-[#d9a55a] uppercase">{menu.subtitle[locale]}</p>
+          <p className="mt-1.5 text-[10.5px] font-medium [@media(max-height:740px)]:mt-1 [@media(max-height:740px)]:text-[10px] tracking-[0.24em] whitespace-nowrap text-[#d9a55a] uppercase">{menu.subtitle[locale]}</p>
         </div>
         {menu.locales.length > 1 ? (
           <div role="group" aria-label={s.language} className="-mr-1 flex items-center justify-end self-start pt-2 text-[15px] font-medium">
@@ -152,7 +152,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
 
       {/* sticky categories */}
       <nav aria-label={s.categories} className="relative z-10">
-        <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 py-1 [scrollbar-width:none] [@media(max-height:740px)]:py-0.5 [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max min-w-[min(100%,560px)] justify-between gap-1">
             {menu.categories.map((c, i) => {
               const on = i === cat;
@@ -178,7 +178,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       </nav>
 
       {/* the deck */}
-      <main className="relative min-h-0 flex-1 pt-4 pb-1" role="tabpanel" aria-label={category.label[locale]}>
+      <main className="relative min-h-0 flex-1 pt-4 pb-1 [@media(max-height:740px)]:pt-2" role="tabpanel" aria-label={category.label[locale]}>
         <div key={category.id} className={`h-full ${leaving ? "deck-out" : "deck-in"}`}>
           <DishStack
             dishes={category.dishes}
@@ -193,7 +193,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       </main>
 
       {/* where scrolling leads */}
-      <footer className="relative z-10 flex h-[56px] shrink-0 items-start justify-center pb-[env(safe-area-inset-bottom)]">
+      <footer className="relative z-10 flex h-[56px] shrink-0 items-start justify-center pb-[env(safe-area-inset-bottom)] [@media(max-height:740px)]:h-[44px]">
         {category.dishes.length > 1 && (
           <button
             type="button"

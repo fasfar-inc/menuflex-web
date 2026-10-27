@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
-import { DishCard } from "./DishCard";
+import { CARD_RADIUS, DishCard } from "./DishCard";
 import { menuStrings } from "./strings";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/** Height : width of the front card: the reference's portrait frame. */
+const CARD_RATIO = 1.25;
 
 /** One dish change, start to finish. Inputs are ignored until it has played out. */
 export const MOTION_MS = 460;
@@ -237,17 +240,21 @@ export function DishStack({
     gesture.current = null;
   };
 
-  // card geometry from the space available, in the reference's proportions
-  const width = Math.min(size.w - 26, 440);
-  const edge = clamp(size.h * 0.046, 18, 34); // each thin edge above
-  const next = clamp(size.h * 0.15, 60, 124); // the next dish below
-  const after = clamp(size.h * 0.06, 24, 48); // and the one after it
+  // card geometry from the space available. The front card keeps the reference's
+  // portrait frame; on a short screen (Safari's bars, small phones) it gets
+  // narrower rather than flatter.
+  const edge = clamp(size.h * 0.036, 10, 28); // each thin edge above
+  const next = clamp(size.h * 0.115, 36, 100); // the next dish below
+  const after = clamp(size.h * 0.045, 14, 38); // and the one after it
   const g: Geometry = {
     height: 0,
     above: [0, edge, edge * 2, edge * 3, edge * 3 + 4],
     below: [0, next, next + after, next + after + 4],
   };
-  const height = Math.max(250, Math.min(size.h - edge * 3 - next - after - 6, width * 1.4));
+  const room = size.h - edge * 3 - next - after - 8;
+  const maxWidth = Math.min(size.w - 26, 420);
+  const height = Math.max(240, Math.min(room, maxWidth * CARD_RATIO));
+  const width = Math.min(maxWidth, Math.max(220, height / CARD_RATIO));
   g.height = height;
 
   // a resize (rotation, browser bars) re-lays the deck at once, without sliding
@@ -312,8 +319,9 @@ export function DishStack({
               {/* cards behind are not focusable, but a tap on one brings it forward */}
               <div
                 inert={!front}
-                className="h-full w-full rounded-[28px]"
+                className="h-full w-full"
                 style={{
+                  borderRadius: CARD_RADIUS,
                   transition: `box-shadow var(--deck-t)`,
                   boxShadow:
                     d === 0
@@ -321,7 +329,7 @@ export function DishStack({
                       : "0 0 0 1px rgba(255,236,205,0.26), 0 18px 40px -18px rgba(0,0,0,0.8)",
                 }}
               >
-                <DishCard dish={dish} locale={locale} icon={icon} categoryLabel={categoryLabel} text={p.text} priority={i <= 1} />
+                <DishCard dish={dish} locale={locale} icon={icon} categoryLabel={categoryLabel} text={p.text} width={width} priority={i <= 1} />
               </div>
             </div>
           );
