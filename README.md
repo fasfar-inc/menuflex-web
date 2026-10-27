@@ -89,17 +89,17 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
 - **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
   category pills stay on screen.
-- **The dish trail:** choosing a category shows its dishes as round photos
-  along a winding gold line, left, right, left, from a small sprout at the
-  top. The selected dish sits mid-screen, largest, with its category, name,
-  description, gold price and count in the space beside it; the line is
-  brighter up to it. This is `DishTrail.tsx`.
+- **The dish trail:** choosing a category shows all its dishes as round
+  photos along a winding gold line, left, right, left, from a small sprout at
+  the top. The trail stays put: the selected dish grows with a gold ring and
+  the line is brighter up to it. Its category, name, description, gold price
+  and position sit under the trail. This is `DishTrail.tsx`.
 - **Moving along it:** one deliberate swipe up or down, one wheel or trackpad
-  gesture, an arrow key or Page Up/Down moves exactly one dish (Home and End
-  jump to the first and last). The trail glides for 460 ms and stops at
-  either end. A tap on another dish brings it to the middle; a tap on the
-  selected one opens its whole photo full screen (✕, a tap outside, a swipe
-  down or Escape closes it).
+  gesture, an arrow key or Page Up/Down moves the highlight exactly one dish
+  (Home and End jump to the first and last; after the last the first comes
+  round again). A tap on another dish selects it; a tap on the selected one
+  opens its whole photo full screen (✕, a tap outside, a swipe down or Escape
+  closes it).
 - **One change at a time:** a single lock covers every input, so nothing new
   starts until the change has finished.
 - **Other controls:** each category pill carries its icon, and the language
