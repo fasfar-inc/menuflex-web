@@ -25,9 +25,9 @@ const WHEEL_QUIET = 240;
 const WHEEL_MIN = 50;
 
 /** Angle between neighbouring plates around the wheel. */
-const STEP_DEG = 36;
+const STEP_DEG = 39;
 /** Plate diameter by distance from the selected one, as a share of the orbit radius. */
-const PLATE = [0.74, 0.56, 0.5, 0.46];
+const PLATE = [0.86, 0.6, 0.52, 0.46];
 /** Height of the dish details under the wheel. */
 const INFO_H = 132;
 
@@ -204,8 +204,10 @@ export function DishWheel({
   // wheel geometry: orbit radius from the space, everything else in proportion
   const wheelH = Math.max(220, size.h - INFO_H);
   // the selected plate's right edge stays clear of the screen edge
-  const r = Math.max(120, Math.min(size.w * 0.66, wheelH * 0.6, (size.w - 10) / 1.29));
-  const cx = -0.08 * r;
+  const reach = 1 + PLATE[0] / 2;
+  const r = Math.max(120, Math.min(size.w * 0.66, wheelH * 0.6, (size.w - 10) / (reach - 0.08)));
+  // the wheel sits as far right as the plate allows, leaving room for the category tag
+  const cx = Math.max(-0.08 * r, size.w - 10 - reach * r);
   const cy = wheelH / 2;
   const discR = 0.9 * r;
   const active = dishes[index];
