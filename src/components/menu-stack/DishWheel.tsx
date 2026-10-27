@@ -227,7 +227,7 @@ export function DishWheel({
       {size.w > 0 && (
         // the wheel fades out at its foot, onto whatever is behind the menu
         <div className="absolute inset-x-0 top-0 overflow-hidden [mask-image:linear-gradient(to_bottom,#000_calc(100%-40px),transparent)]" style={{ height: wheelH }}>
-          {/* the wheel: a brass tray, a little see-through, with engraved rings */}
+          {/* the wheel: a brass tray, a little see-through */}
           <div
             aria-hidden="true"
             className="absolute rounded-full bg-[radial-gradient(circle_at_75%_50%,rgba(91,68,41,0.9)_0%,rgba(62,47,30,0.86)_42%,rgba(39,29,19,0.8)_100%)] backdrop-blur-[2px]"
@@ -240,10 +240,6 @@ export function DishWheel({
             }}
           />
           <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" fill="none">
-            <circle cx={cx} cy={cy} r={discR * 0.8} stroke="rgba(236,196,132,0.28)" strokeWidth="1" />
-            <circle cx={cx} cy={cy} r={discR * 0.765} stroke="rgba(236,196,132,0.16)" strokeWidth="0.75" strokeDasharray="1.5 5" />
-            <circle cx={cx} cy={cy} r={discR * 0.55} stroke="rgba(236,196,132,0.2)" strokeWidth="1" />
-            <circle cx={cx} cy={cy} r={discR * 0.32} stroke="rgba(236,196,132,0.14)" strokeWidth="1" />
             {/* the rim's marks turn with the plates: one per dish, three finer ones between */}
             {Array.from({ length: n * 4 }, (_, k) => {
               const major = k % 4 === 0;
