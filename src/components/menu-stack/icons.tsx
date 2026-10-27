@@ -64,14 +64,6 @@ export function ExpandIcon({ className = "h-4 w-4" }: P) {
   );
 }
 
-export function BurgerIcon({ className = "h-6 w-6" }: P) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line} strokeWidth={1.6}>
-      <path d="M4.5 7h15M4.5 12h15M4.5 17h15" />
-    </svg>
-  );
-}
-
 export function CloseIcon({ className = "h-6 w-6" }: P) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line} strokeWidth={1.6}>
