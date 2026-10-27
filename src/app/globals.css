@@ -163,7 +163,7 @@ body {
   }
 }
 
-/* Interactive menu (/m/…): a category's deck fades across when switching. */
+/* Interactive menu (/m/…): a category's dishes fade across when switching. */
 @keyframes deck-in {
   from {
     opacity: 0;
@@ -196,7 +196,7 @@ body {
   }
 }
 
-/* Interactive menu: the selected dish's details fade in as the wheel turns. */
+/* Interactive menu: the selected dish's details fade in as it changes. */
 @keyframes dish-info-in {
   from {
     opacity: 0;
@@ -210,4 +210,31 @@ body {
 
 .dish-info-in {
   animation: dish-info-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Interactive menu: the selected dish's photograph arrives as the last one leaves. */
+@keyframes show-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--dy, 28px)) scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes show-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--dy, 28px) * -1)) scale(0.98);
+  }
+}
+
+.show-in {
+  animation: show-in 460ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.show-out {
+  animation: show-out 460ms cubic-bezier(0.4, 0, 0.6, 1) both;
 }

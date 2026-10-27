@@ -89,31 +89,29 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
 - **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
   category pills stay on screen.
-- **The dish wheel:** choosing a category shows its dishes as round plates
-  around a bronze wheel at the left edge, with the category name on the wheel.
-  The selected plate sits at the wheel's right, largest, with a gold ring; the
-  other dishes follow the curve above and below. Its name, price and
-  description sit under the wheel. This is `DishWheel.tsx`.
-- **Turning it:** one deliberate swipe up or down, one wheel or trackpad
-  gesture, an arrow key or Page Up/Down, or a tap on a plate turns the wheel by
-  exactly one dish (a tap goes straight to that dish). The plates travel along
-  the circle for 460 ms with a gentle ease-out.
+- **The dish showcase:** choosing a category shows its first dish large: the
+  photograph on the right, fading into the dark, with the category, name,
+  description and gold price over its left side and a count with one bar per
+  dish. Every dish of the category sits underneath as a thumbnail (the strip
+  scrolls sideways when they don't fit). This is `DishShowcase.tsx`.
+- **Moving through it:** one deliberate swipe up or down, one wheel or
+  trackpad gesture, an arrow key or Page Up/Down moves exactly one dish; a tap
+  on a thumbnail goes straight to it. The photograph slides and cross-fades for
+  460 ms. After the last dish the first comes round again.
 - **One change at a time:** a single lock covers every input, so nothing new
-  starts until the turn has finished. The wheel is a loop: after the last dish
-  the first comes round again.
-- **Other controls:** the menu button lists every dish, and the language switch
-  changes between TR and EN (remembered; `?lang=tr` works).
+  starts until the change has finished.
+- **Other controls:** each category pill carries its icon, and the language
+  switch changes between TR and EN (remembered; `?lang=tr` works).
 - **Behaviour:** the page fits the screen and never scrolls, so nothing locks.
-  It respects iPhone safe areas. With reduced motion the wheel turns instantly
-  and the details cross-fade.
+  It respects iPhone safe areas. With reduced motion dishes change instantly.
 
 Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 `liman.ts`), registered in `src/content/menus/index.ts`. Photos go in
-`public/m/<slug>/` and are cut to a circle (top-down shots suit the wheel best);
-the selected plate fills most of the width, so the dish reads without a tap.
-A dish without one gets a bronze plate with its category emblem; a large,
-soft MenuFlex wordmark sits behind the plates. Entries marked `demo: true` are kept out of search engines.
-LIMAN at `/m/liman/` is fictional and is never listed in Our Work.
+`public/m/<slug>/` (square-ish shots with the plate in the middle suit the
+showcase best). A dish without one shows its category emblem on bronze; a
+large, soft MenuFlex wordmark sits behind the photograph. Entries marked
+`demo: true` are kept out of search engines. LIMAN at `/m/liman/` is fictional
+and is never listed in Our Work.
 
 ## The QR code
 
