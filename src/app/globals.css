@@ -163,7 +163,7 @@ body {
   }
 }
 
-/* Interactive menu (/m/…): a category's dishes fade across when switching. */
+/* Interactive menu (/m/…): a category's deck fades across when switching. */
 @keyframes deck-in {
   from {
     opacity: 0;
@@ -196,7 +196,7 @@ body {
   }
 }
 
-/* Interactive menu: the selected dish's details fade in as it changes. */
+/* Interactive menu: the selected dish's details fade in as the wheel turns. */
 @keyframes dish-info-in {
   from {
     opacity: 0;

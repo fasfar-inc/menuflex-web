@@ -3,7 +3,7 @@ import type { CategoryIcon as CategoryIconName } from "@/content/menus/types";
 type P = { className?: string };
 const line = { fill: "none", stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
-/** Fine line icons for each category (the emblem plates). */
+/** Fine line icons for each category (emblem cards and the full-menu list). */
 export function CategoryIcon({ name, className = "h-6 w-6" }: P & { name: CategoryIconName }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line}>
@@ -52,6 +52,22 @@ export function WaveMark({ className = "" }: P) {
       <path d="M4 9C16 2 30 2 40 8s26 7 36-1" strokeWidth="3.2" />
       <path d="M12 14c10-5 20-5 28 0s20 5 28-1" strokeWidth="2.4" />
       <path d="M22 19c7-3 13-3 18 0s12 3 17 0" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+export function ExpandIcon({ className = "h-4 w-4" }: P) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line} strokeWidth={1.7}>
+      <path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" />
+    </svg>
+  );
+}
+
+export function BurgerIcon({ className = "h-6 w-6" }: P) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line} strokeWidth={1.6}>
+      <path d="M4.5 7h15M4.5 12h15M4.5 17h15" />
     </svg>
   );
 }

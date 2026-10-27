@@ -2,42 +2,56 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Wordmark } from "@/components/brand/BrandLogo";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
 import { Price } from "./Price";
-import { CategoryIcon } from "./icons";
+import { CategoryIcon, ExpandIcon } from "./icons";
 import { PhotoViewer } from "./PhotoViewer";
 import { menuStrings } from "./strings";
 
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
-/** One step along the trail, start to finish. Inputs are ignored until it has played out. */
+/** One turn of the wheel, start to finish. Inputs are ignored until it has played out. */
 export const MOTION_MS = 460;
 export const REDUCED_MS = 200;
+const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
 /** Swipe thresholds: a deliberate pull, or a short quick flick. */
-const SWIPE_MIN = 48; // px, or 8% of the stage's height if larger
+const SWIPE_MIN = 48; // px, or 8% of the wheel's height if larger
 const FLICK_MIN = 28; // px
 const FLICK_SPEED = 0.45; // px per ms, over the swipe's last 100 ms
 /** A wheel or trackpad gesture is over after this long without events. */
 const WHEEL_QUIET = 240;
 const WHEEL_MIN = 50;
 
-/** Height of the dish details under the trail, roomy and compact. */
-const INFO_H = 176;
-const INFO_H_SHORT = 132;
-/** How much larger the selected dish is than the others. */
-const BIG_SCALE = 1.4;
+/** Angle between neighbouring plates around the wheel. */
+const STEP_DEG = 36;
+/** Plate diameter by distance from the selected one, as a share of the orbit radius. */
+const PLATE = [0.74, 0.56, 0.5, 0.46];
+/** Height of the dish details under the wheel. */
+const INFO_H = 132;
+
+/** Distance around a loop of n plates: the dishes after the selected one below (positive), the rest above. */
+function loop(x: number, n: number) {
+  const d = ((x % n) + n) % n;
+  return d > n / 2 ? d - n : d;
+}
+
+const plateSize = (a: number) => {
+  const i = Math.min(Math.floor(a), PLATE.length - 2);
+  return mix(PLATE[i], PLATE[i + 1], clamp(a - i, 0, 1));
+};
 
 /**
- * A category's dishes as round photographs along a winding gold trail: left,
- * right, left, from a sprout at the top. The trail stays put; the selected
- * dish grows with a gold ring, the line is brighter up to it, and its name,
- * description and price sit under the trail. One swipe, one wheel gesture or
- * one key press moves the highlight exactly one dish; a tap on another dish
- * goes to it, and a tap on the selected one opens its photograph whole. `go`
- * holds the lock that keeps changes from overlapping.
+ * A category's dishes as round plates around a dark wheel at the left edge.
+ * The selected plate sits at the wheel's right, largest; the others follow
+ * the curve above and below. Choosing a dish turns the wheel so the plates
+ * travel along the circle. One swipe, one wheel gesture, one key press or a
+ * tap on a plate moves to exactly one dish; `go` holds the lock that keeps
+ * changes from overlapping. The selected dish's name, price and description
+ * sit under the wheel.
  */
-export function DishTrail({
+export function DishWheel({
   dishes,
   index,
   go,
@@ -61,7 +75,7 @@ export function DishTrail({
   const [size, setSize] = useState({ w: 0, h: 0 });
   const indexRef = useRef(index);
   indexRef.current = index;
-  // the dish shown whole, full screen
+  // the dish whose photograph is open, large
   const [viewing, setViewing] = useState<Dish | null>(null);
 
   useLayoutEffect(() => {
@@ -73,7 +87,27 @@ export function DishTrail({
     return () => ro.disconnect();
   }, []);
 
-  // after the last dish the first comes round again
+  // the wheel's rotation, in dishes: eased along the shortest way round to the selected dish
+  const [pos, setPos] = useState(index);
+  const posRef = useRef(index);
+  useEffect(() => {
+    const from = posRef.current;
+    const delta = loop(index - from, n);
+    if (reduced || delta === 0) {
+      posRef.current = index;
+      setPos(index);
+      return;
+    }
+    const t0 = performance.now();
+    let raf = requestAnimationFrame(function frame(now) {
+      const t = clamp((now - t0) / MOTION_MS, 0, 1);
+      posRef.current = t < 1 ? from + delta * easeOut(t) : index;
+      setPos(posRef.current);
+      if (t < 1) raf = requestAnimationFrame(frame);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [index, n, reduced]);
+
   const step = useCallback((dir: 1 | -1) => n > 1 && go((indexRef.current + dir + n) % n), [go, n]);
 
   // mouse wheel and trackpads: exactly one dish per gesture, however long its momentum lasts
@@ -167,36 +201,14 @@ export function DishTrail({
     gesture.current = null;
   };
 
-  // layout: the trail zigzags between two columns above the details
-  const w = Math.min(size.w, 520);
-  const ox = (size.w - w) / 2;
-  const roomy = size.h >= 560;
-  const infoH = roomy ? INFO_H : INFO_H_SHORT;
-  const top = 34; // room for the sprout
-  const area = Math.max(160, size.h - infoH - top - 8);
-  const row = Math.min(area / n, 150);
-  const y0 = top + (area - row * n) / 2 + row / 2;
-  // two rows apart in the same column, so a dish never meets the one below its neighbour
-  const small = Math.min(w * 0.3, row * 1.62, 128);
-  const big = Math.min(small * BIG_SCALE, w * 0.42, row * 3.7 - small);
-  const colX = (i: number) => ox + (i % 2 === 0 ? 18 + big / 2 : w - 18 - big / 2);
-  const at = (i: number) => ({ x: colX(i), y: y0 + i * row, d: i === index ? big : small });
-
-  // the gold line: from the sprout above the first dish, through every dish
-  const sprout = { x: colX(0) - big * 0.34, y: Math.max(30, y0 - Math.min(row * 0.9, 70)) };
-  const points = [sprout, ...dishes.map((_, i) => at(i))];
-  const curve = (to: number) => {
-    let d = `M${points[0].x},${points[0].y}`;
-    for (let k = 1; k <= to; k++) {
-      const p = points[k - 1];
-      const q = points[k];
-      const h = (q.y - p.y) * 0.6;
-      d += ` C${p.x},${p.y + h} ${q.x},${q.y - h} ${q.x},${q.y}`;
-    }
-    return d;
-  };
+  // wheel geometry: orbit radius from the space, everything else in proportion
+  const wheelH = Math.max(220, size.h - INFO_H);
+  // the selected plate's right edge stays clear of the screen edge
+  const r = Math.max(120, Math.min(size.w * 0.66, wheelH * 0.6, (size.w - 10) / 1.29));
+  const cx = -0.08 * r;
+  const cy = wheelH / 2;
+  const discR = 0.9 * r;
   const active = dishes[index];
-  const ease = reduced ? undefined : `width ${MOTION_MS}ms cubic-bezier(0.22,0.61,0.36,1), height ${MOTION_MS}ms cubic-bezier(0.22,0.61,0.36,1), left ${MOTION_MS}ms cubic-bezier(0.22,0.61,0.36,1), top ${MOTION_MS}ms cubic-bezier(0.22,0.61,0.36,1)`;
 
   return (
     <div
@@ -210,22 +222,32 @@ export function DishTrail({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
     >
-      {size.w > 0 && active && (
-        <>
-          {/* MenuFlex, large and soft, behind the trail */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-center" style={{ height: size.h - infoH }}>
-            <Wordmark className="text-[min(36vw,220px)] text-gold-bright opacity-[0.2] blur-[5px]" />
-          </div>
+      {size.w > 0 && (
+        <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: wheelH }}>
+          {/* the wheel */}
+          <div
+            aria-hidden="true"
+            className="absolute rounded-full bg-[radial-gradient(circle_at_75%_50%,#5b4429_0%,#3e2f1e_42%,#271d13_100%)]"
+            style={{
+              width: discR * 2,
+              height: discR * 2,
+              left: cx - discR,
+              top: cy - discR,
+              boxShadow: "inset 0 0 0 2px rgba(236,196,132,0.7), inset 0 0 90px rgba(0,0,0,0.35), 0 0 80px rgba(214,150,70,0.22)",
+            }}
+          />
 
-          <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" fill="none">
-            <path d={curve(n)} stroke="rgba(236,196,132,0.3)" strokeWidth="1.5" strokeLinecap="round" />
-            {/* the way to the selected dish, brighter */}
-            <path d={curve(index + 1)} stroke="rgba(240,196,125,0.85)" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-          <Sprout className="pointer-events-none absolute h-9 w-9 text-[#e8b86a]" style={{ left: sprout.x - 30, top: sprout.y - 32 }} />
-
+          {/* the plates around it */}
           {dishes.map((dish, i) => {
-            const p = at(i);
+            const d = loop(i - pos, n);
+            const a = Math.abs(d);
+            const theta = (d * STEP_DEG * Math.PI) / 180;
+            if (Math.abs(theta) > Math.PI * 0.62) return null;
+            const dia = plateSize(a) * r;
+            const x = cx + r * Math.cos(theta);
+            const y = cy + r * Math.sin(theta);
+            // plates fade where the loop wraps round, at the far side of the wheel
+            const seam = n > 2 ? clamp((n / 2 - a) / 0.5, 0, 1) : 1;
             const selected = i === index;
             return (
               <button
@@ -236,54 +258,63 @@ export function DishTrail({
                 aria-current={selected ? "true" : undefined}
                 onClick={() => {
                   if (gesture.current?.used) return;
-                  // the selected dish opens its photograph; any other one becomes the selected one
+                  // the selected plate opens its photograph; any other plate turns the wheel to it
                   if (!selected) go(i);
-                  else if (dish.photo) setViewing(dish);
+                  else if (dish.photo && Math.abs(index - pos) < 0.02) setViewing(dish);
                 }}
                 className="absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-                style={{ width: p.d, height: p.d, left: p.x - p.d / 2, top: p.y - p.d / 2, zIndex: selected ? 20 : 10, transition: ease }}
+                style={{
+                  width: dia,
+                  height: dia,
+                  left: x - dia / 2,
+                  top: y - dia / 2,
+                  zIndex: 50 - Math.round(a * 10),
+                  opacity: seam,
+                  pointerEvents: seam < 0.5 ? "none" : undefined,
+                  transition: reduced ? `opacity ${REDUCED_MS}ms ease-out` : undefined,
+                }}
               >
-                <Plate dish={dish} icon={icon} selected={selected} priority={i < 3} dim={!selected} />
+                <Plate dish={dish} icon={icon} selected={a < 0.5} priority={a < 1.5} />
+                {/* tells guests the selected photo opens */}
+                {dish.photo && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-[9%] bottom-[9%] flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(12_10_8/0.72)] text-cream shadow-[0_0_0_1px_rgba(236,196,132,0.5)] backdrop-blur-sm transition-opacity duration-300"
+                    style={{ opacity: a < 0.3 ? 1 : 0 }}
+                  >
+                    <ExpandIcon className="h-4 w-4" />
+                  </span>
+                )}
               </button>
             );
           })}
 
-          {/* the selected dish's details */}
-          <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-6 pb-2" style={{ height: infoH }}>
-            <div key={active.id} className={reduced ? "" : "dish-info-in"}>
-              <p className="flex items-center gap-3 text-[10.5px] font-medium tracking-[0.32em] text-[#d9a55a] uppercase">
-                {categoryLabel}
-                <span aria-hidden="true" className="h-px w-8 bg-[#d9a55a]/70" />
-              </p>
-              <h2
-                className={`mt-2 min-w-0 font-serif leading-[1.05] tracking-[-0.01em] text-cream ${roomy ? "line-clamp-2 text-[clamp(26px,7.6vw,32px)]" : "line-clamp-1 text-[clamp(21px,6.4vw,25px)]"}`}
-              >
-                {active.name[locale]}
-              </h2>
-              <p className={`line-clamp-2 font-light text-cream-soft ${roomy ? "mt-1.5 text-[14.5px] leading-[1.45]" : "mt-1 text-[13px] leading-[1.4]"}`}>
-                {active.description[locale]}
-              </p>
-            </div>
-            <div className={`flex items-end justify-between gap-4 ${roomy ? "mt-3" : "mt-2"}`}>
-              <Price
-                key={active.id}
-                value={active.price}
-                className={`bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-serif leading-none text-transparent ${roomy ? "text-[clamp(26px,7.4vw,32px)]" : "text-[clamp(21px,6.2vw,25px)]"} ${reduced ? "" : "dish-info-in"}`}
-              />
-              {/* where this dish sits in the category */}
-              <div aria-hidden="true" className="flex w-[min(46%,calc(var(--n)*36px))] flex-col items-end gap-2 pb-1" style={{ ["--n" as string]: n }}>
-                <span className="text-[13px] tracking-[0.12em] text-cream tabular-nums">
-                  {index + 1} / {n}
-                </span>
-                <span className="flex w-full gap-1.5">
-                  {dishes.map((d, i) => (
-                    <span key={d.id} className={`h-[2px] flex-1 rounded-full transition-colors duration-300 ${i === index ? "bg-[#f0c47d]" : "bg-cream/25"}`} />
-                  ))}
-                </span>
-              </div>
-            </div>
+          {/* the category, on the wheel */}
+          <div
+            className="absolute left-0 z-[60] flex h-[50px] max-w-[44%] items-center rounded-r-full bg-cream pr-6 pl-4 text-[17px] font-medium whitespace-nowrap text-[#17120c] shadow-[0_8px_24px_-10px_rgba(0,0,0,0.8)]"
+            style={{ top: cy - 25 }}
+          >
+            <span className="truncate">{categoryLabel}</span>
           </div>
-        </>
+
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-[70] h-8 bg-[linear-gradient(to_bottom,rgba(11,9,7,0),#0b0907)]" />
+        </div>
+      )}
+
+      {/* the selected dish */}
+      {active && (
+        <div className="absolute inset-x-0 bottom-0 px-6" style={{ height: INFO_H }}>
+          <div key={active.id} className={reduced ? "" : "dish-info-in"}>
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="min-w-0 font-serif text-[clamp(22px,6.8vw,29px)] leading-tight tracking-[-0.01em] text-cream">{active.name[locale]}</h2>
+              <Price value={active.price} className="shrink-0 font-serif text-[clamp(20px,6.2vw,27px)] text-cream" />
+            </div>
+            <p className="mt-2 line-clamp-2 text-[15px] leading-[1.5] font-light text-cream-soft">{active.description[locale]}</p>
+            <p className="mt-2 text-[11px] tracking-[0.2em] text-cream-muted tabular-nums" aria-hidden="true">
+              {index + 1} / {n}
+            </p>
+          </div>
+        </div>
       )}
       {viewing && <PhotoViewer dish={viewing} locale={locale} reduced={reduced} onClose={() => setViewing(null)} />}
       <p aria-live="polite" className="sr-only">
@@ -293,25 +324,14 @@ export function DishTrail({
   );
 }
 
-/** Where the trail begins: a small sprout. */
-function Sprout({ className, style }: { className: string; style: React.CSSProperties }) {
-  return (
-    <svg viewBox="0 0 36 36" aria-hidden="true" className={className} style={style} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M30 34c-2-6-4-10-9-14" />
-      <path d="M21 20c-1-6 1-12 6-16 2 6 0 12-6 16Z" fill="currentColor" fillOpacity="0.22" />
-      <path d="M24 26c-5-3-11-3-15 1 5 3 11 3 15-1Z" fill="currentColor" fillOpacity="0.22" />
-    </svg>
-  );
-}
-
-/** A dish as a round photograph, or its category emblem on bronze when there is none. */
-function Plate({ dish, icon, selected, priority, dim }: { dish: Dish; icon: CategoryIconName; selected: boolean; priority: boolean; dim: boolean }) {
+/** A dish as a round plate: its photograph cut to a circle, or the category emblem. */
+function Plate({ dish, icon, selected, priority }: { dish: Dish; icon: CategoryIconName; selected: boolean; priority: boolean }) {
   return (
     <span
-      className={`relative block h-full w-full overflow-hidden rounded-full bg-[#14100c] transition-[box-shadow,filter] duration-300 ${dim ? "brightness-[0.72]" : ""}`}
+      className="relative block h-full w-full overflow-hidden rounded-full bg-[#14100c] transition-shadow duration-300"
       style={{
         boxShadow: selected
-          ? "0 0 0 2px rgba(240,196,125,0.9), 0 0 32px rgba(214,150,70,0.4), 0 18px 34px -10px rgba(0,0,0,0.85)"
+          ? "0 0 0 2px rgba(240,196,125,0.85), 0 0 28px rgba(214,150,70,0.35), 0 18px 34px -10px rgba(0,0,0,0.85)"
           : "0 0 0 1.5px rgba(236,196,132,0.45), 0 14px 26px -10px rgba(0,0,0,0.85)",
       }}
     >
@@ -321,7 +341,7 @@ function Plate({ dish, icon, selected, priority, dim }: { dish: Dish; icon: Cate
           alt=""
           fill
           priority={priority}
-          sizes="(max-width: 480px) 60vw, 280px"
+          sizes="(max-width: 480px) 50vw, 240px"
           className="object-cover"
           style={{ objectPosition: dish.photo.position ?? "50% 55%" }}
           draggable={false}
