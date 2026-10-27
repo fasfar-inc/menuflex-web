@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
 import { DishList } from "./DishList";
@@ -112,8 +113,11 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
     tabs.current?.querySelector<HTMLElement>(`[data-cat="${menu.categories[to].id}"]`)?.focus();
   };
 
+  // a restaurant's own colours, when it has them; otherwise the approved gold and dark
+  const accent = menu.theme && menu.theme.accent.toLowerCase() !== "#f6d9a5" ? menu.theme.accent : null;
+
   return (
-    <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[#0d0b09] text-cream">
+    <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[#0d0b09] text-cream" style={menu.theme ? { backgroundColor: menu.theme.background } : undefined}>
       <MenuBackdrop />
 
       {/* header, kept small so the dishes have the room: full menu, restaurant, language */}
@@ -128,8 +132,22 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           <BurgerIcon className="h-6 w-6" />
         </button>
         <div className="flex min-w-0 flex-col items-center">
-          <WaveMark className="h-[9px] w-[34px] text-[#d9a55a]" />
-          <h1 className="mt-0.5 bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-display text-[1.45rem] leading-none font-semibold tracking-[0.04em] text-transparent">
+          {menu.logo ? (
+            <Image
+              src={menu.logo.src}
+              alt=""
+              width={menu.logo.width}
+              height={menu.logo.height}
+              unoptimized
+              className="h-7 w-auto max-w-[120px] object-contain"
+            />
+          ) : (
+            <WaveMark className="h-[9px] w-[34px] text-[#d9a55a]" />
+          )}
+          <h1
+            className={`mt-0.5 font-display text-[1.45rem] leading-none font-semibold tracking-[0.04em] ${accent ? "" : "bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text text-transparent"}`}
+            style={accent ? { color: accent } : undefined}
+          >
             {menu.name}
           </h1>
           <p className="mt-0.5 text-[8.5px] font-medium tracking-[0.26em] whitespace-nowrap text-[#d9a55a] uppercase">{menu.subtitle[locale]}</p>
@@ -172,6 +190,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
                   aria-selected={on}
                   tabIndex={on ? 0 : -1}
                   onClick={() => selectCategory(i)}
+                  style={on && accent ? { backgroundColor: accent, borderColor: accent, color: readableOn(accent) } : undefined}
                   className={`h-9 shrink-0 rounded-full border px-3 text-[13px] min-[400px]:px-3.5 whitespace-nowrap transition-[background-color,border-color,color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
                     on ? "border-[#f6d9a5] bg-[#f6d9a5] font-semibold text-[#17120c]" : "border-cream/25 font-medium text-cream hover:border-cream/50"
                   }`}
@@ -269,8 +288,37 @@ function MenuOverview({
           </section>
         ))}
         {menu.note && <p className="mt-8 text-[13px] leading-relaxed text-cream-muted">{menu.note[locale]}</p>}
+        {menu.contact && <ContactLines contact={menu.contact} />}
         <p className="mt-2 text-[12px] tracking-[0.12em] text-cream-muted">{s.poweredBy}</p>
       </div>
     </div>
+  );
+}
+
+/** Dark text on a light accent, light text on a dark one. */
+function readableOn(hex: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? "#17120c" : "#fbf5ea";
+}
+
+/** The restaurant's contact details at the foot of the full menu, each one a link. */
+function ContactLines({ contact }: { contact: NonNullable<RestaurantMenu["contact"]> }) {
+  const lines = [
+    contact.phone && { label: contact.phone, href: `tel:${contact.phone.replace(/[^+0-9]/g, "")}` },
+    contact.whatsapp && { label: `WhatsApp +${contact.whatsapp}`, href: `https://wa.me/${contact.whatsapp}` },
+    contact.email && { label: contact.email, href: `mailto:${contact.email}` },
+    contact.instagram && { label: `@${contact.instagram.replace(/^@/, "")}`, href: `https://instagram.com/${contact.instagram.replace(/^@/, "")}` },
+    contact.address && { label: contact.address, href: `https://maps.google.com/?q=${encodeURIComponent(contact.address)}` },
+  ].filter((l): l is { label: string; href: string } => Boolean(l));
+  return (
+    <ul className="mt-8 space-y-2 text-[14px] text-cream-soft">
+      {lines.map((l) => (
+        <li key={l.href}>
+          <a href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="underline-offset-4 hover:text-gold-bright hover:underline">
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }

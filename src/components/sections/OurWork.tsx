@@ -1,16 +1,16 @@
-import { publishedClients } from "@/content/clients";
+import type { ClientRestaurant } from "@/content/clients";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { Section } from "./Section";
 
 const external = (url: string) => /^https?:\/\//.test(url);
 
 /** Published restaurants, names only; each name opens that restaurant's menu. Hidden while there are none. */
-export function OurWork({ t }: { t: Dictionary["work"] }) {
-  if (publishedClients.length === 0) return null;
+export function OurWork({ t, restaurants }: { t: Dictionary["work"]; restaurants: ClientRestaurant[] }) {
+  if (restaurants.length === 0) return null;
   return (
     <Section id="work" eyebrow={t.eyebrow} title={t.title}>
       <ul className="border-t border-cream/10">
-        {publishedClients.map((c) => (
+        {restaurants.map((c) => (
           <li key={c.name} className="border-b border-cream/10">
             {c.menuUrl ? (
               <a

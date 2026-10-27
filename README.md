@@ -3,8 +3,10 @@
 The MenuFlex service website: digital restaurant menus served through QR codes.
 A FASFAR product.
 
-Next.js (App Router) · TypeScript · Tailwind CSS. No backend; every page is
-static.
+Next.js (App Router) · TypeScript · Tailwind CSS · Supabase. The marketing
+pages are static; the private admin at `/admin` and the restaurants managed
+there use Supabase (auth, database, image storage). Without Supabase
+configured the site still builds and works, with its built-in content.
 
 ```bash
 npm install
@@ -28,6 +30,7 @@ hard-coded, and anything left empty is simply not shown.
 | `NEXT_PUBLIC_EMAIL` | Email button, contact card and the form's email option |
 | `NEXT_PUBLIC_DEMO_MENU_URL` | Where the hero QR code leads (default: `<SITE_URL>/demo/liman/`) |
 | `NEXT_PUBLIC_SUBSCRIPTION_PRICE` / `_PERIOD` | The single subscription's price, e.g. `₺1.500` and `month` or `year` |
+| `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` | The admin dashboard and restaurants published from it (see below) |
 
 Each item appears only once it is configured, so nothing on the site is a
 dead end:
@@ -50,6 +53,8 @@ dead end:
 | `/tr/` | Home, Turkish |
 | `/demo/liman/` | The example digital menu the demo QR code opens |
 | `/m/<slug>/` | A restaurant's interactive menu, e.g. `/m/liman/` (demo) |
+| `/r/<code>/` | A published restaurant's QR code address; leads to its menu |
+| `/admin/` | The private MenuFlex admin (team only, never indexed) |
 
 Both languages share one set of components. All copy lives in
 `src/i18n/dictionaries.ts`, and each language has its own root layout
@@ -120,6 +125,76 @@ to download).
 Entries marked `demo: true` are kept out of search engines.
 LIMAN at `/m/liman/` is fictional and is never listed in Our Work.
 
+## Admin dashboard (`/admin/`)
+
+A private dashboard for the MenuFlex team. Restaurants and their guests have
+no accounts.
+
+- **Restaurants:** a list with an Add button. Each one has its name, web
+  address (slug), English and Turkish subtitle, logo, accent and background
+  colours, contact details (shown at the foot of the menu's full list),
+  currency and opening language.
+- **Menu:** categories (English and Turkish name, icon) and their dishes
+  (photo, names, short descriptions, price, category, visibility), each
+  with add, edit, delete and up/down ordering.
+- **Preview:** the menu in the approved circular design, drafts and all,
+  for admins only.
+- **Draft / Published:** a new restaurant is a draft, visible to admins only.
+  Publishing puts its menu live at `/m/<slug>/`, lists it by name in Our Work
+  (both languages) and gives it a QR code. Unpublishing takes all three down.
+- **QR code:** each restaurant's code points at `/r/<code>/`, a stable
+  address that never changes, even if its slug does. Download it as PNG or
+  SVG from the restaurant's page once it is published.
+
+Dishes with a photo turn on the menu's wheel; a category with no photos yet
+is shown as a plain list. Prices are formatted for the restaurant's currency
+(₺1.250, €12,50).
+
+### Security
+
+- Sign-in is email and password through Supabase Auth. Every admin page and
+  every server action checks, on the server, that the user is signed in
+  (verified with Supabase, not just read from the cookie) and is listed in
+  `public.admins`. Anyone else is sent to the sign-in page.
+- Row level security is on for every table. The public can read only
+  published restaurants, their categories and their visible dishes; only
+  admins can write anything, reorder or upload images. Nobody can make
+  themselves an admin from the app.
+- The app only uses the public anon key. The service role key is never
+  needed or read by the site.
+- Images live in the public `menu-images` bucket so menus load them straight
+  from Supabase's CDN. Files get random names, but anyone holding a draft
+  photo's exact address could open it; nothing else about a draft is
+  readable.
+
+### Setting up Supabase
+
+1. Create a Supabase project.
+2. In **SQL Editor**, run `supabase/migrations/20261027120000_menuflex_admin.sql`
+   (or `supabase db push` with the Supabase CLI). It only creates what is
+   missing and is safe to run again. It adds the tables, row level security,
+   the reorder function and the `menu-images` storage bucket with its
+   policies.
+3. In **Authentication → Providers → Email**, keep email sign-in on, and in
+   **Authentication → Sign In / Providers** turn **Allow new users to sign up**
+   off. Admins are invited, never self-registered.
+4. Create each team member in **Authentication → Users → Add user** (email
+   and a strong password), then make them an admin in the SQL Editor:
+
+   ```sql
+   insert into public.admins (user_id)
+   select id from auth.users where email = 'name@example.com';
+   ```
+
+5. Copy **Project URL** and the **anon public** key from **Project Settings →
+   API** into `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   in the hosting environment (or `.env.local`), and set
+   `NEXT_PUBLIC_SITE_URL` to the public domain so QR codes use it. Redeploy.
+6. Sign in at `/admin/`.
+
+The site needs a Node.js host for the admin (for example Vercel): sign-in,
+server actions and on-demand menus don't work on a purely static export.
+
 ## The QR code
 
 `src/components/hero/QrCode.tsx` generates a real code at build time with
@@ -142,9 +217,15 @@ re-shooting or re-rendering each menu at about 1400 px wide.
 ## Project structure
 
 ```
+supabase/migrations/   database schema, row level security, storage
 src/
-  app/(en)/            English root layout, home, /demo/liman
+  app/(en)/            English root layout, home, /demo/liman, /m/<slug>
   app/(tr)/            Turkish root layout, /tr
+  app/admin/           the private admin: sign-in, restaurants, menu, preview
+  app/r/[code]/        stable QR code addresses
+  lib/supabase/        Supabase clients and settings
+  lib/menuflex/        admin check, public queries, rows → menu, prices
+  middleware.ts        keeps the admin session fresh
   app/globals.css      design tokens, backdrop, animations, --u
   config/business.ts   contact details and price from the environment
   content/             clients (Our Work), the LIMAN demo menu
@@ -154,5 +235,7 @@ src/
     sections/          OurWork, HowItWorks, Pricing, Contact(+Form)
     layout/            SiteHeader, SiteFooter, RootDocument
     digital-menu/      the LIMAN demo menu
+    menu-stack/        the interactive menu (wheel, photo viewer)
+    admin/             the admin's forms and buttons
     brand/, ui/        wordmark, contact buttons, icons
 ```
