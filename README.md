@@ -89,17 +89,17 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
 - **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
   category pills stay on screen.
-- **The dish showcase:** choosing a category shows its first dish large: the
-  photograph on the right, fading into the dark, with the category, name,
-  description and gold price over its left side and a count with one bar per
-  dish. Every dish of the category sits underneath as a thumbnail (the strip
-  scrolls sideways when they don't fit); tapping one with a photo also opens
-  the whole dish full screen (✕, a tap outside, a swipe down or Escape closes
-  it). This is `DishShowcase.tsx`.
-- **Moving through it:** one deliberate swipe up or down, one wheel or
-  trackpad gesture, an arrow key or Page Up/Down moves exactly one dish; a tap
-  on a thumbnail goes straight to it. The photograph slides and cross-fades for
-  460 ms. After the last dish the first comes round again.
+- **The dish trail:** choosing a category shows its dishes as round photos
+  along a winding gold line, left, right, left, from a small sprout at the
+  top. The selected dish sits mid-screen, largest, with its category, name,
+  description, gold price and count in the space beside it; the line is
+  brighter up to it. This is `DishTrail.tsx`.
+- **Moving along it:** one deliberate swipe up or down, one wheel or trackpad
+  gesture, an arrow key or Page Up/Down moves exactly one dish (Home and End
+  jump to the first and last). The trail glides for 460 ms and stops at
+  either end. A tap on another dish brings it to the middle; a tap on the
+  selected one opens its whole photo full screen (✕, a tap outside, a swipe
+  down or Escape closes it).
 - **One change at a time:** a single lock covers every input, so nothing new
   starts until the change has finished.
 - **Other controls:** each category pill carries its icon, and the language
@@ -109,9 +109,9 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
 Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 `liman.ts`), registered in `src/content/menus/index.ts`. Photos go in
-`public/m/<slug>/` (square-ish shots with the plate in the middle suit the
-showcase best). A dish without one shows its category emblem on bronze; a
-large, soft MenuFlex wordmark sits behind the photograph. Entries marked
+`public/m/<slug>/` and are cut to a circle (top-down shots suit the trail
+best). A dish without one shows its category emblem on bronze; a large, soft
+MenuFlex wordmark sits behind the trail. Entries marked
 `demo: true` are kept out of search engines. LIMAN at `/m/liman/` is fictional
 and is never listed in Our Work.
 

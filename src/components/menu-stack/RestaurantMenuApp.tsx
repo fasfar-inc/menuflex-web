@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
-import { DishShowcase, MOTION_MS, REDUCED_MS } from "./DishShowcase";
+import { DishTrail, MOTION_MS, REDUCED_MS } from "./DishTrail";
 import { CategoryIcon, WaveMark } from "./icons";
 import { menuStrings } from "./strings";
 
@@ -10,8 +10,8 @@ const SWITCH_MS = 180;
 
 /**
  * A restaurant's interactive menu: header, sticky categories and the dish
- * showcase. Everything fits the viewport, so the page itself never scrolls and
- * nothing can lock it; the showcase takes swipes, taps, the mouse wheel and keys.
+ * trail. Everything fits the viewport, so the page itself never scrolls and
+ * nothing can lock it; the trail takes swipes, taps, the mouse wheel and keys.
  */
 export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   const [locale, setLocale] = useState<MenuLocale>(menu.defaultLocale);
@@ -195,7 +195,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       {/* the dishes */}
       <main className="relative min-h-0 flex-1 pt-4 pb-[max(env(safe-area-inset-bottom),10px)] [@media(max-height:740px)]:pt-2" role="tabpanel" aria-label={category.label[locale]}>
         <div key={category.id} className={`h-full ${leaving ? "deck-out" : "deck-in"}`}>
-          <DishShowcase
+          <DishTrail
             dishes={category.dishes}
             index={dish}
             go={goDish}
