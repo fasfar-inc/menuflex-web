@@ -1,159 +1,109 @@
-# MenuFlex — Web
+# MenuFlex website
 
-Marketing website for **MenuFlex**, the digital restaurant menu service by FASFAR.
+The MenuFlex service website: digital restaurant menus served through QR codes.
+A FASFAR product.
 
-The homepage is built **one scene at a time**. Only Scene 01 ("Paper") exists right now.
-
-## Stack
-
-- [Next.js 15](https://nextjs.org) (App Router) + TypeScript
-- Tailwind CSS v4 (design tokens in `src/app/globals.css`)
-- GSAP + `@gsap/react` for entrance and cinematic animations
-- Three.js / React Three Fiber / Drei, installed for later scenes that need real 3D
-
-## Getting started
+Next.js (App Router) · TypeScript · Tailwind CSS. No backend; every page is
+static.
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+cp .env.example .env.local   # fill in the real business details
+npm run dev                  # http://localhost:3000
+npm run build && npm start
+npm run lint
 ```
 
-Other scripts:
+## Configuration
 
-```bash
-npm run lint     # ESLint
-npm run build    # production build
-npm run start    # serve the production build
-```
+Real contact details and pricing come from environment variables
+(`src/config/business.ts`, documented in `.env.example`). Nothing is
+hard-coded, and anything left empty is simply not shown.
+
+| Variable | Used for |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Absolute links and the demo QR code's address |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp buttons and the contact form (digits, international format) |
+| `NEXT_PUBLIC_PHONE` | Call button and contact card |
+| `NEXT_PUBLIC_EMAIL` | Email button, contact card and the form's email option |
+| `NEXT_PUBLIC_DEMO_MENU_URL` | Where the hero QR code leads (default: `<SITE_URL>/demo/liman/`) |
+| `NEXT_PUBLIC_SUBSCRIPTION_PRICE` / `_PERIOD` | The single subscription's price, e.g. `₺1.500` and `month` or `year` |
+
+Until a channel is configured, the hero's WhatsApp, Call and Email buttons
+lead to the contact section, and that section says the details are coming
+soon. Without a price, the subscription card asks visitors to contact you.
+
+## Pages
+
+| Path | |
+| --- | --- |
+| `/` | Home, English |
+| `/tr/` | Home, Turkish |
+| `/demo/liman/` | The example digital menu the demo QR code opens |
+
+Both languages share one set of components. All copy lives in
+`src/i18n/dictionaries.ts`, and each language has its own root layout
+(`src/app/(en)`, `src/app/(tr)`) so `<html lang>` and metadata are correct.
+
+## Homepage
+
+1. **Hero.** The approved design: headline, contact actions, and the central
+   QR code joined to six printed menus by gold lines.
+   - **From 1280 px:** the hero is one canvas measured in the reference
+     design's pixels. `--u` in `globals.css` is one design pixel, set by the
+     viewport's width or height (whichever is tighter), so text and menus keep
+     the reference proportions and never collide.
+   - **Phones and tablets:** a dedicated stacked layout. The QR code is on
+     top, and the menus sit in labelled pairs on one gold spine
+     (`MenuConstellationMobile`).
+   - **1024–1279 px:** the text and that stacked composition side by side.
+   - **Animations:** load-only CSS animations. Text and menus fade in and the
+     lines draw. Menus and buttons have hover states. Everything shows
+     immediately with reduced motion.
+2. **Our Work.** `src/content/clients.ts`. Add only genuine restaurants that
+   have approved being listed. Each card opens that restaurant's live menu.
+   Entries marked `demo` (currently the LIMAN example) are always labelled
+   "Demo".
+3. **How It Works.** Three steps.
+4. **Subscription.** One plan at the configured price.
+5. **Contact.** WhatsApp, phone and email cards, plus a short form. There is
+   no server: the form opens the message in WhatsApp or the visitor's mail
+   app, addressed to the configured details.
+
+## The QR code
+
+`src/components/hero/QrCode.tsx` generates a real code with the `qrcode`
+package. It draws dark modules on a light tile, because every phone camera
+reads that polarity; the decorative pattern in the mockup is not used. It
+encodes `NEXT_PUBLIC_DEMO_MENU_URL` (or `<SITE_URL>/demo/liman/`). With
+neither set, it encodes this site's own `/demo/liman/` from the visitor's
+address, so it always opens the example menu on whatever host serves the site.
+
+Each restaurant client will receive its own code for its own menu. This one
+is a demonstration.
+
+## Images
+
+The six open menus in `public/menus/` are cut out of the approved hero
+mockup, at twice its resolution with transparent edges, including their food
+photography. To swap in new photography, replace the files and keep their
+sizes in `src/components/hero/menus.ts`. The sharpest result would come from
+re-shooting or re-rendering each menu at about 1400 px wide.
 
 ## Project structure
 
 ```
 src/
-  app/                     # App Router entry (layout, page, global styles)
+  app/(en)/            English root layout, home, /demo/liman
+  app/(tr)/            Turkish root layout, /tr
+  app/globals.css      design tokens, backdrop, animations, --u
+  config/business.ts   contact details and price from the environment
+  content/             clients (Our Work), the LIMAN demo menu
+  i18n/dictionaries.ts EN and TR copy
   components/
-    brand/                 # MenuFlex logo and mark
-    layout/                # Site header
-    ui/                    # Shared primitives (Button)
-    menu/                  # The LIMAN menu: photo object, geometry, opening sequence player
-      sequence/            # Scroll-scrubbed frame player for the rendered opening
-    digital-menu/          # LIMAN's interactive digital menu (real HTML, phone-sized)
-    scenes/
-      scene-01/            # "Paper" hero: headline, menu stage, chapter rail, scroll pin
-      scene-02/            # "Paper to digital": the phone emerging from the printed page
-  content/site.ts          # All copy and nav data (ready for TR/EN)
-  content/limanMenu.ts     # LIMAN dishes, shared by the printed and digital menus
-  lib/gsap.ts              # GSAP + ScrollTrigger registration
-  lib/progressStore.ts     # Tiny store that passes scroll progress to the sequence player
-tools/menu-render/         # Blender (Cycles) model + render of the menu opening
-public/scene-01/           # Scene 01 imagery
+    hero/              Hero, MenuConstellation(+Mobile), QrCard, QrCode
+    sections/          OurWork, HowItWorks, Pricing, Contact(+Form)
+    layout/            SiteHeader, SiteFooter, RootDocument
+    digital-menu/      the LIMAN demo menu
+    brand/, ui/        wordmark, contact buttons, icons
 ```
-
-New scenes go in `src/components/scenes/scene-0X/` and get added to `src/app/page.tsx`.
-
-## Assets
-
-Scene 01's visual is built from three independent layers inside `MenuStage`:
-
-| Layer | File | Notes |
-| --- | --- | --- |
-| Studio backdrop | `public/scene-01/studio-backdrop.webp` | Window light and leaf shadows with the menu removed |
-| Contact shadow | CSS in `MenuStage.tsx` | Softens and fades as the menu floats up |
-| Menu object | `public/scene-01/liman-menu-object.webp` | Transparent cut-out, rendered by `components/menu/MenuObject.tsx` |
-
-`components/menu/limanMenu.ts` stores where the menu sits on the backdrop, as fractions of
-the backdrop's size, so the layers stay aligned at any size. Later scenes can animate
-`MenuObject` (target it with `[data-menu-object]` or its ref) or swap it for a 3D model
-without touching the backdrop.
-
-Both images are cut from the approved mockup, so they are sharp at normal screen
-resolution and slightly soft on high-resolution screens. When a studio render is
-available (about 2900 px wide, menu on a transparent background), replace
-`liman-menu-object.webp` and update the sizes and position in `limanMenu.ts`.
-
-## Step 2: menu opening sequence
-
-Scrolling from the first screen pins the hero and plays the opening of the LIMAN menu
-(`OpeningSequence` → `MenuStage` → `MenuSequence`).
-
-1. **Opening frame.** The approved photograph, unchanged.
-2. **Handover.** In the first ~5% of the scroll the photograph dissolves into frame 0
-   of a rendered sequence. The render's camera, the book's proportions and its pose
-   were solved from the photograph, and the cover and page textures are projected
-   from it, so the two line up.
-3. **Opening.** 96 frames rendered with Blender Cycles, scrubbed by GSAP ScrollTrigger:
-   the hardcover turns on its cloth joint with natural acceleration and settles back
-   a few degrees. Pages bloom from pressed-flat into an open-book curve and the first
-   sheets lift at the gutter. The book straightens while the camera eases in and then
-   pulls back to frame the spread at a three-quarter angle.
-
-Why pre-rendered: the model needs physically based light (soft area-light shadows,
-bounce light, cloth sheen, contact shadow on the table), and a browser can't compute
-that in real time on every device. The frames carry transparent backgrounds and the
-menu's shadow on the table, and they are composited over the CSS studio backdrop.
-
-Delivery: two WebP sets in `public/scene-01/opening/` (`hi` for desktop and high-DPI
-screens, `lo` for phones). They stream after the page has loaded, first frame first and
-then progressively finer passes.
-
-## Step 3: from paper to digital
-
-The same pin continues after the opening (desktop: 140% of the viewport for the opening,
-then 200% for this chapter). Progress is a second value from `OpeningSequence`, and the
-timings live in `DIGITAL` in `scenes/scene-02/PhoneReveal.tsx`. The idea: the printed
-right-hand page *is* the phone screen. It never gets cropped or swapped for another object.
-
-1. **The menu faces the viewer** (rendered, frames 96–143). The open menu turns square to
-   the camera with the whole spread in view.
-2. **Handover.** An exact HTML copy of the right-hand page fades in over its render: the
-   rendered paper (`public/scene-01/opening/page-lift.webp`, cut from a render of the
-   same pose with the page left blank), the printed side columns
-   (`scenes/scene-02/PrintedPage.tsx`, set from the texture's typesetting) and the digital
-   menu, whose Mains section is laid out like the printed MAINS column. Under it, the book
-   switches to that blank-page frame (frame 144).
-3. **The page lifts off.** The page comes forward with a soft shadow while the book falls
-   back and fades. The columns beside MAINS dissolve down the page. The page reshapes into
-   the phone screen, and MAINS (the same photographs, dish names and prices) moves with it
-   into the digital layout. On phones the target is the finished, enlarged phone, so the
-   object grows steadily towards the centre of the screen.
-4. **Paper becomes screen.** The paper turns deep black, the ink turns light, the status
-   bar, LIMAN brand row and sticky categories fade in, the corners round off, and the phone
-   frame forms around the screen.
-5. **Interactive.** At the end of the pin the menu takes pointer input: the category tabs
-   scroll to their section, and the active tab follows the scroll. The menu scrolls
-   inside the phone with `overscroll-behavior: contain`, so it never drives the page.
-
-The digital menu (`components/digital-menu/DigitalMenu.tsx`) is real HTML at 390×836
-logical pixels, scaled to fit. Its content comes from `content/limanMenu.ts`.
-
-Reduced motion: there is no camera movement and no frames are downloaded. The pin stays,
-and the approved photo cross-fades straight to the finished phone.
-
-Photography: the only dish photographs available are the octopus, sea bass and
-tagliatelle from the approved mockup. Other dishes are text rows. To add photos, put
-licensed images in `public/digital-menu/` and add `photo` to the dish in
-`content/limanMenu.ts`.
-
-### Re-rendering
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install bpy==5.2.3
-.venv/bin/python tools/menu-render/render_menu.py --out /tmp/frames --scale 1.15 --samples 40
-.venv/bin/python tools/menu-render/render_menu.py --phase b --out /tmp/frames_b --scale 1.15 --samples 40
-.venv/bin/python tools/menu-render/render_menu.py --phase b --blank --frames 47 --out /tmp/frames_blank --scale 1.15 --samples 40
-.venv/bin/python tools/menu-render/render_menu.py --layout     # prints the lifted page's outline (PRINT_PAGE)
-python3 tools/menu-render/encode_frames.py /tmp/frames --shadow 0.5               # needs Pillow
-python3 tools/menu-render/encode_frames.py /tmp/frames_b --shadow 0.5 --offset 96
-python3 tools/menu-render/encode_frames.py /tmp/frames_blank --shadow 0.5 --offset 97
-python3 tools/menu-render/cut_page.py /tmp/frames_blank/0047.png                  # page-lift.webp
-```
-
-The opening frames in the repo were rendered before a lens-shift fix and were encoded
-with `--shift=-56.6,4.1` (a pure image translation). Fresh renders don't need it.
-
-`render_menu.py` builds the whole scene in code: bevelled cloth boards, the page block
-with layered sheet edges, the cloth spine and joint, the inserts, the materials,
-the lights and the shadow-catching table. Motion and framing are defined in `pose()`.
-At 4 CPU cores a full render takes about 45 minutes. Textures live in
-`tools/menu-render/textures/`. The cover and the two food photographs come from the
-approved mockup, and the page typography is set in Inter and Cormorant Garamond.

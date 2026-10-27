@@ -1,95 +1,164 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   MenuFlex design tokens
+   MenuFlex design tokens: deep charcoal, warm gold, cream paper
    ------------------------------------------------------------------ */
 :root {
-  --ivory-50: #f8f2e8;
-  --ivory-100: #f3ece1;
-  --ivory-200: #ece4d8;
-  --ivory-300: #e2d9cb;
-  --ink: #1b1915;
-  --ink-soft: #4a463f;
-  --ink-muted: #8a847a;
-  --coral: #ef7a62;
-  --coral-deep: #e0644b;
+  --night-950: #0f0d0b;
+  --night-900: #15120f;
+  --night-800: #1d1915;
+  --night-700: #2a241e;
+  --cream: #f4ecdf;
+  --cream-soft: #cfc6b8;
+  --cream-muted: #948b7e;
+  --gold: #d4a35c;
+  --gold-bright: #f0c47d;
+  --gold-deep: #a97a3c;
+  --whatsapp: #3ecf73;
 }
 
 @theme inline {
-  --color-ivory-50: var(--ivory-50);
-  --color-ivory-100: var(--ivory-100);
-  --color-ivory-200: var(--ivory-200);
-  --color-ivory-300: var(--ivory-300);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-muted: var(--ink-muted);
-  --color-coral: var(--coral);
-  --color-coral-deep: var(--coral-deep);
+  --color-night-950: var(--night-950);
+  --color-night-900: var(--night-900);
+  --color-night-800: var(--night-800);
+  --color-night-700: var(--night-700);
+  --color-cream: var(--cream);
+  --color-cream-soft: var(--cream-soft);
+  --color-cream-muted: var(--cream-muted);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-deep: var(--gold-deep);
+  --color-whatsapp: var(--whatsapp);
   --font-sans: var(--font-inter);
   --font-serif: var(--font-newsreader);
+  --font-display: var(--font-cormorant);
 }
 
 html {
-  background: var(--ivory-200);
+  background: var(--night-950);
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--ivory-200);
-  color: var(--ink);
+  background: var(--night-950);
+  color: var(--cream);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Warm studio backdrop: window light from the upper right, a soft table
-   plane in the lower half and diagonal light falloff. Pure CSS so it
-   scales to any viewport without banding from a raster. */
-.studio-backdrop {
+/* Dark stone backdrop with warm light: a glow behind the QR code, light
+   falling from the upper right, and a vignette. Fine grain avoids banding. */
+.stone-backdrop {
   background:
-    radial-gradient(60% 55% at 88% 8%, rgba(255, 250, 240, 0.85) 0%, rgba(255, 250, 240, 0) 70%),
-    radial-gradient(70% 60% at 30% 95%, rgba(250, 244, 234, 0.9) 0%, rgba(250, 244, 234, 0) 70%),
-    linear-gradient(172deg, #e6ded2 0%, #ebe4d9 38%, #f2ebe0 62%, #f4ede2 100%);
+    radial-gradient(34% 40% at 67% 52%, rgba(214, 150, 70, 0.2) 0%, rgba(214, 150, 70, 0) 70%),
+    radial-gradient(60% 50% at 95% 0%, rgba(120, 92, 60, 0.22) 0%, rgba(120, 92, 60, 0) 70%),
+    radial-gradient(120% 90% at 50% 40%, #1f1a16 0%, #15120f 55%, #0c0a08 100%);
 }
 
-.studio-backdrop::before {
-  /* diagonal sun shafts */
+.stone-backdrop::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    118deg,
-    rgba(255, 252, 245, 0) 0px,
-    rgba(255, 252, 245, 0.22) 120px,
-    rgba(255, 252, 245, 0) 260px,
-    rgba(255, 252, 245, 0) 420px
-  );
-  mask-image: linear-gradient(180deg, transparent 0%, #000 45%, #000 100%);
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .4 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
 
-.studio-backdrop::after {
-  /* fine paper grain to avoid gradient banding */
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.18;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .34 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  pointer-events: none;
+/* ------------------------------------------------------------------
+   Entrance animations (load only, no scroll-driven motion)
+   ------------------------------------------------------------------ */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-rise {
+  animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+.anim-settle {
+  animation: settle-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+.anim-fade {
+  animation: fade-in 0.9s ease-out both;
+  animation-delay: var(--delay, 0s);
+}
+
+.anim-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: var(--delay, 0s);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .anim-rise,
+  .anim-settle,
+  .anim-fade,
+  .anim-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-/* Layered drop shadow for the floating menu: light comes from the upper
-   right, so the shadow falls down and to the left onto the wall. */
-.menu-depth {
-  filter: drop-shadow(-6px 10px 8px rgba(70, 52, 34, 0.16))
-    drop-shadow(-22px 34px 36px rgba(70, 52, 34, 0.14));
+/* Printed menus resting on the table: contact shadow plus soft ambient. */
+.menu-shadow {
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45)) drop-shadow(0 22px 26px rgba(0, 0, 0, 0.4));
+}
+
+/* Desktop hero canvas: the approved 1491 x 1055 design, scaled as one piece.
+   --u is one design pixel; it follows the viewport's width or height,
+   whichever is tighter (heights under 800px may scroll a little). */
+@media (min-width: 1280px) {
+  :root {
+    --u: min(calc((100vw - 16px) / 1491), calc(max(100svh, 800px) / 1055), 1.4px);
+  }
 }
