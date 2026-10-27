@@ -26,6 +26,8 @@ const WHEEL_MIN = 50;
 
 /** Angle between neighbouring plates around the wheel: wide enough that no two plates touch. */
 const STEP_DEG = 47;
+/** Places round the wheel: a short category repeats its dishes so it turns like a full one. */
+const MIN_SLOTS = 8;
 /** Plate diameter by distance from the selected one, as a share of the orbit radius. */
 const PLATE = [0.86, 0.6, 0.52, 0.46];
 /** Height of the dish details under the wheel. */
@@ -88,28 +90,47 @@ export function DishWheel({
     return () => ro.disconnect();
   }, []);
 
-  // the wheel's rotation, in dishes: eased along the shortest way round to the selected dish
+  // places round the wheel; with fewer dishes than that, each dish appears more than once
+  const m = n <= 1 ? n : n * Math.ceil(MIN_SLOTS / n);
+  // the wheel's rotation, in places: it only ever moves the way it was asked, one place per step
   const [pos, setPos] = useState(index);
   const posRef = useRef(index);
+  const target = useRef(index);
+  const shown = useRef(index);
+  const pending = useRef<number | null>(null);
   useEffect(() => {
+    const delta = pending.current ?? loop(index - shown.current, n);
+    pending.current = null;
+    shown.current = index;
+    target.current += delta;
     const from = posRef.current;
-    const delta = loop(index - from, n);
-    if (reduced || delta === 0) {
-      posRef.current = index;
-      setPos(index);
+    const to = target.current;
+    if (reduced || from === to) {
+      posRef.current = to;
+      setPos(to);
       return;
     }
     const t0 = performance.now();
     let raf = requestAnimationFrame(function frame(now) {
       const t = clamp((now - t0) / MOTION_MS, 0, 1);
-      posRef.current = t < 1 ? from + delta * easeOut(t) : index;
+      posRef.current = t < 1 ? from + (to - from) * easeOut(t) : to;
       setPos(posRef.current);
       if (t < 1) raf = requestAnimationFrame(frame);
     });
     return () => cancelAnimationFrame(raf);
   }, [index, n, reduced]);
 
-  const step = useCallback((dir: 1 | -1) => n > 1 && go((indexRef.current + dir + n) % n), [go, n]);
+  /** Turn the wheel by `delta` places, landing on the dish found there. */
+  const turn = useCallback(
+    (delta: number) => {
+      pending.current = delta;
+      const ok = go((((indexRef.current + delta) % n) + n) % n);
+      if (!ok) pending.current = null;
+      return ok;
+    },
+    [go, n],
+  );
+  const step = useCallback((dir: 1 | -1) => n > 1 && turn(dir), [turn, n]);
 
   // mouse wheel and trackpads: exactly one dish per gesture, however long its momentum lasts
   useEffect(() => {
@@ -228,8 +249,10 @@ export function DishWheel({
         // the plates fade out at the wheel's foot, onto whatever is behind the menu
         <div className="absolute inset-x-0 top-0 overflow-hidden [mask-image:linear-gradient(to_bottom,#000_calc(100%-40px),transparent)]" style={{ height: wheelH }}>
           {/* the plates around it */}
-          {dishes.map((dish, i) => {
-            const d = loop(i - pos, n);
+          {Array.from({ length: m }, (_, k) => {
+            const i = k % n;
+            const dish = dishes[i];
+            const d = loop(k - pos, m);
             const a = Math.abs(d);
             const theta = (d * STEP_DEG * Math.PI) / 180;
             if (Math.abs(theta) > Math.PI * 0.62) return null;
@@ -237,11 +260,12 @@ export function DishWheel({
             const x = cx + r * Math.cos(theta);
             const y = cy + r * Math.sin(theta);
             // plates fade where the loop wraps round, at the far side of the wheel
-            const seam = n > 2 ? clamp((n / 2 - a) / 0.5, 0, 1) : 1;
-            const selected = i === index;
+            const seam = m > 2 ? clamp((m / 2 - a) / 0.5, 0, 1) : 1;
+            const offset = Math.round(loop(k - target.current, m));
+            const selected = offset === 0;
             return (
               <button
-                key={dish.id}
+                key={`${dish.id}-${k}`}
                 type="button"
                 tabIndex={selected && dish.photo ? 0 : -1}
                 aria-label={selected && dish.photo ? `${s.viewPhoto}: ${dish.name[locale]}` : dish.name[locale]}
@@ -249,8 +273,9 @@ export function DishWheel({
                 onClick={() => {
                   if (gesture.current?.used) return;
                   // the selected plate opens its photograph; any other plate turns the wheel to it
-                  if (!selected) go(i);
-                  else if (dish.photo && Math.abs(index - pos) < 0.02) setViewing(dish);
+                  if (!selected) {
+                    if (i !== index) turn(offset);
+                  } else if (dish.photo && Math.abs(target.current - pos) < 0.02) setViewing(dish);
                 }}
                 className="absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
                 style={{
