@@ -205,9 +205,9 @@ export function DishWheel({
   const wheelH = Math.max(220, size.h - INFO_H);
   // the selected plate's right edge stays clear of the screen edge
   const reach = 1 + PLATE[0] / 2;
-  const r = Math.max(120, Math.min(size.w * 0.66, wheelH * 0.6, (size.w - 10) / (reach - 0.08)));
+  const r = Math.max(120, Math.min(size.w * 0.74, wheelH * 0.66, (size.w - 8) / (reach - 0.08)));
   // the wheel sits as far right as the plate allows, leaving room for the category tag
-  const cx = Math.max(-0.08 * r, size.w - 10 - reach * r);
+  const cx = Math.max(-0.08 * r, size.w - 8 - reach * r);
   const cy = wheelH / 2;
   const discR = 0.9 * r;
   const active = dishes[index];
