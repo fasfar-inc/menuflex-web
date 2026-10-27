@@ -89,11 +89,12 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
 - **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
   category pills stay on screen.
-- **The dish wheel:** choosing a category shows its dishes as round plates
-  along the curve of an unseen wheel at the left edge, straight on the
-  background, with the category name on a tag tied to the selected plate.
-  The selected plate sits at the wheel's right, largest, with a gold ring; the
-  other dishes follow the curve above and below. Its name, price and
+- **The dish wheel:** choosing a category shows its dishes that have a photo
+  as round plates along the curve of an unseen wheel at the left edge,
+  straight on the background. The selected plate sits at the wheel's right,
+  largest, with a gold ring; the other dishes follow the curve above and
+  below, spaced so no two plates overlap. A category with no photos yet shows
+  its dishes as a plain list instead (`DishList.tsx`). Its name, price and
   description sit under the wheel. This is `DishWheel.tsx`.
 - **Turning it:** one deliberate swipe up or down, one wheel or trackpad
   gesture, an arrow key or Page Up/Down, or a tap on a plate turns the wheel by
@@ -112,8 +113,8 @@ Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 `liman.ts`), registered in `src/content/menus/index.ts`. Photos go in
 `public/m/<slug>/` and are cut to a circle (top-down shots suit the wheel best);
 tapping the selected plate opens the whole photo full screen (✕, a tap
-outside, a swipe down or Escape closes it). A dish without one gets a bronze
-plate with its category emblem. Behind the menu, `MenuBackdrop.tsx` draws
+outside, a swipe down or Escape closes it). A dish without one stays off the
+wheel (it is still in the full-menu list) until its photo is added. Behind the menu, `MenuBackdrop.tsx` draws
 candlelight glows, fine gold olive branches, a soft MenuFlex wordmark, grain
 and gold dust (nothing to download; the glows hold still with reduced motion).
 Entries marked `demo: true` are kept out of search engines.

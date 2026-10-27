@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
+import { DishList } from "./DishList";
 import { DishWheel, MOTION_MS, REDUCED_MS } from "./DishWheel";
 import { MenuBackdrop } from "./MenuBackdrop";
 import { Price } from "./Price";
@@ -31,6 +32,9 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   const tabs = useRef<HTMLDivElement>(null);
   const s = menuStrings[locale];
   const category = menu.categories[cat];
+  // the wheel shows dishes with a photograph; a category with none yet is a plain list
+  const pictured = (c: (typeof menu.categories)[number]) => c.dishes.filter((d) => d.photo);
+  const onWheel = pictured(category);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -183,15 +187,19 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       {/* the dish wheel */}
       <main className="relative min-h-0 flex-1 pt-1 pb-[max(env(safe-area-inset-bottom),10px)]" role="tabpanel" aria-label={category.label[locale]}>
         <div key={category.id} className={`h-full ${leaving ? "deck-out" : "deck-in"}`}>
-          <DishWheel
-            dishes={category.dishes}
-            index={dish}
-            go={goDish}
-            locale={locale}
-            icon={category.icon}
-            categoryLabel={category.label[locale]}
-            reduced={reduced}
-          />
+          {onWheel.length > 0 ? (
+            <DishWheel
+              dishes={onWheel}
+              index={dish}
+              go={goDish}
+              locale={locale}
+              icon={category.icon}
+              categoryLabel={category.label[locale]}
+              reduced={reduced}
+            />
+          ) : (
+            <DishList dishes={category.dishes} locale={locale} categoryLabel={category.label[locale]} />
+          )}
         </div>
       </main>
 
@@ -202,7 +210,9 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           onClose={() => setOverview(false)}
           onPick={(ci, di) => {
             setOverview(false);
-            selectCategory(ci, di);
+            // a dish off the wheel (no photograph yet) opens its category at the start
+            const c = menu.categories[ci];
+            selectCategory(ci, Math.max(0, pictured(c).indexOf(c.dishes[di])));
           }}
         />
       )}

@@ -24,8 +24,8 @@ const FLICK_SPEED = 0.45; // px per ms, over the swipe's last 100 ms
 const WHEEL_QUIET = 240;
 const WHEEL_MIN = 50;
 
-/** Angle between neighbouring plates around the wheel. */
-const STEP_DEG = 39;
+/** Angle between neighbouring plates around the wheel: wide enough that no two plates touch. */
+const STEP_DEG = 47;
 /** Plate diameter by distance from the selected one, as a share of the orbit radius. */
 const PLATE = [0.86, 0.6, 0.52, 0.46];
 /** Height of the dish details under the wheel. */
@@ -45,7 +45,7 @@ const plateSize = (a: number) => {
 /**
  * A category's dishes as round plates on an unseen wheel at the left edge,
  * straight on the menu's background. The selected plate sits at the wheel's
- * right, largest, tied to the category tag; the others follow
+ * right, largest; the others follow, spaced so they never overlap,
  * the curve above and below. Choosing a dish turns the wheel so the plates
  * travel along the circle. One swipe, one wheel gesture, one key press or a
  * tap on a plate moves to exactly one dish; `go` holds the lock that keeps
@@ -207,7 +207,7 @@ export function DishWheel({
   // the selected plate's right edge stays clear of the screen edge
   const reach = 1 + PLATE[0] / 2;
   const r = Math.max(120, Math.min(size.w * 0.74, wheelH * 0.66, (size.w - 8) / (reach - 0.08)));
-  // the wheel sits as far right as the plate allows, leaving room for the category tag
+  // the wheel sits as far right as the plate allows
   const cx = Math.max(-0.08 * r, size.w - 8 - reach * r);
   const cy = wheelH / 2;
   const active = dishes[index];
@@ -278,19 +278,6 @@ export function DishWheel({
               </button>
             );
           })}
-
-          {/* the category tag, tied to the selected plate by a fine gold line */}
-          <div aria-hidden="true" className="absolute z-[55] flex items-center" style={{ top: cy - 4, left: 0, width: cx + r * (1 - PLATE[0] / 2) + 2, height: 8 }}>
-            <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(236,196,132,0.2),rgba(240,196,125,0.9))]" />
-            <span className="h-2 w-2 rotate-45 bg-[#f0c47d] shadow-[0_0_8px_rgba(240,196,125,0.9)]" />
-          </div>
-          {/* the category, on the wheel */}
-          <div
-            className="absolute left-0 z-[60] flex h-[50px] max-w-[44%] items-center rounded-r-full bg-cream pr-6 pl-4 text-[17px] font-medium whitespace-nowrap text-[#17120c] shadow-[0_8px_24px_-10px_rgba(0,0,0,0.8)]"
-            style={{ top: cy - 25 }}
-          >
-            <span className="truncate">{categoryLabel}</span>
-          </div>
 
         </div>
       )}
