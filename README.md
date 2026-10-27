@@ -87,20 +87,20 @@ Both languages share one set of components. All copy lives in
 
 A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
-- **Layout:** the restaurant header and a sticky category bar sit above a deck
-  of dish cards. The front card shows the photo, name, description, price and
-  up to three highlights. The dishes before it wait above and the ones after it
-  below, smaller, dimmer and slightly blurred, each showing its name strip.
+- **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
+  category pills stay on screen above a deck of dish cards. The front card shows
+  the photograph, name, price and description. The other dishes of the category
+  stack behind it, smaller, dimmer and blurred: those still to come below, the
+  ones already seen as thin edges above.
 - **Changing dishes:** swipe or scroll up for the next dish, down for the
   previous one. The cards move, scale and blur continuously as you drag. One
   wheel notch or trackpad gesture moves one dish. The keyboard works too:
-  arrows, Page Up/Down, Space, Home and End move between dishes, and
-  Left/Right in the category bar change category. Tapping a card that peeks
-  out brings it forward.
-- **Between categories:** moving past the last dish goes on to the next
-  category. Choosing a category fades its deck in at the first dish.
-- **Other controls:** the menu button opens every dish at a glance, and the
-  language switch changes between EN and TR (remembered; `?lang=tr` works).
+  arrows, Page Up/Down, Space, Home and End; Left/Right on the category pills
+  change category. Tapping a card that peeks out brings it forward.
+- **The deck is a loop:** after the last dish the first comes round again.
+  Choosing a category fades its deck in at the first dish.
+- **Other controls:** the menu button lists every dish, and the language switch
+  changes between TR and EN (remembered; `?lang=tr` works).
 - **Behaviour:** the page fits the screen and never scrolls, so nothing locks.
   It respects iPhone safe areas. With reduced motion the cards simply
   cross-fade.

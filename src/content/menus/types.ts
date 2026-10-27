@@ -6,7 +6,6 @@ export type MenuLocale = "en" | "tr";
 export type Localized = Record<MenuLocale, string>;
 
 export type CategoryIcon = "starters" | "fish" | "meat" | "desserts" | "drinks";
-export type DishTag = "fresh" | "chef" | "sustainable" | "vegetarian" | "spicy" | "signature";
 
 export type Dish = {
   id: string;
@@ -16,7 +15,6 @@ export type Dish = {
   price: string;
   /** Optional photograph in /public; dishes without one get a typographic card. */
   photo?: { src: string; width: number; height: number; position?: string };
-  tags?: DishTag[];
 };
 
 export type MenuCategory = {
@@ -33,6 +31,7 @@ export type RestaurantMenu = {
   /** Fictional restaurants used to show MenuFlex; kept out of search and Our Work. */
   demo?: boolean;
   defaultLocale: MenuLocale;
+  /** In the order the language switch shows them. */
   locales: MenuLocale[];
   categories: MenuCategory[];
   note?: Localized;

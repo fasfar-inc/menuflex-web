@@ -2,52 +2,70 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
-import { DishCard, type CardFaces } from "./DishCard";
+import { DishCard } from "./DishCard";
 import { menuStrings } from "./strings";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
-/** Depth levels for a card's distance from the front (0) up to three places away. */
+/** Depth levels by distance from the front card (0) up to four places away. */
 const LEVELS = {
-  scale: [1, 0.92, 0.85, 0.8],
-  blur: [0, 1.6, 3.2, 5],
-  bright: [1, 0.78, 0.6, 0.5],
-  opacity: [1, 1, 1, 0],
+  scale: [1, 0.86, 0.73, 0.62, 0.55],
+  blur: [0, 3, 5, 7, 8],
+  bright: [1, 0.82, 0.68, 0.58, 0.5],
 };
 const level = (values: number[], a: number) => {
   const i = Math.min(Math.floor(a), values.length - 2);
   return mix(values[i], values[i + 1], clamp(a - i, 0, 1));
 };
 
-type Geometry = { width: number; height: number; peek: [number, number] };
+/**
+ * How far each card behind reaches past the front card's edge, cumulatively:
+ * the dishes already seen sit above as three thin edges, the ones to come
+ * below, the next one showing a good part of its photograph.
+ */
+type Geometry = { height: number; above: number[]; below: number[] };
+
+const reachAt = (steps: number[], a: number) => {
+  const i = Math.min(Math.floor(a), steps.length - 2);
+  return mix(steps[i], steps[i + 1], clamp(a - i, 0, 1));
+};
+
+/** Distance around a loop of n cards: the dishes after the front one below (positive), the rest above. */
+function loop(x: number, n: number) {
+  const d = ((x % n) + n) % n;
+  return d > n / 2 ? d - n : d;
+}
 
 /** Where a card sits at (fractional) distance d from the front: negative = above, positive = below. */
 function place(d: number, g: Geometry) {
-  const a = Math.min(Math.abs(d), 3);
+  const steps = d < 0 ? g.above : g.below;
+  const visible = steps.length - 2; // levels that show; the last step is where cards fade out
+  const a = Math.min(Math.abs(d), steps.length - 1);
   const s = level(LEVELS.scale, a);
-  // how far the card's outer edge reaches beyond the front card's edge
-  const reach = a <= 1 ? g.peek[0] * a : a <= 2 ? g.peek[0] + g.peek[1] * (a - 1) : g.peek[0] + g.peek[1] + 6 * (a - 2);
-  const ty = Math.sign(d) * (((1 - s) * g.height) / 2 + reach);
-  const faces: CardFaces = {
-    full: clamp(1 - a * 1.6, 0, 1),
-    top: d < 0 ? clamp(a * 1.6 - 0.4, 0, 1) : 0,
-    bottom: d > 0 ? clamp(a * 1.6 - 0.4, 0, 1) : 0,
+  const ty = Math.sign(d) * (((1 - s) * g.height) / 2 + reachAt(steps, a));
+  return {
+    ty,
+    s,
+    blur: level(LEVELS.blur, a),
+    bright: level(LEVELS.bright, a),
+    opacity: clamp(visible + 1 - a, 0, 1),
+    z: 100 - Math.round(a * 10),
+    text: clamp(1 - a * 2, 0, 1),
   };
-  return { ty, s, blur: level(LEVELS.blur, a), bright: level(LEVELS.bright, a), opacity: level(LEVELS.opacity, a), z: 100 - Math.round(a * 10), faces };
 }
 
 /**
  * The dishes of one category as a deck: one card in front, the others stacked
  * behind it, smaller and softer. Swipe or scroll up for the next dish, down for
- * the previous; arrow keys, Page Up/Down, Home and End work too. Past either
- * end, `onBoundary` lets the menu move on to the neighbouring category.
+ * the previous; arrow keys, Page Up/Down, Home and End work too. The deck is
+ * a loop, like a real stack: the dishes already seen wait at the back above,
+ * so after the last dish the first comes round again.
  */
 export function DishStack({
   dishes,
   index,
   onIndexChange,
-  onBoundary,
   locale,
   icon,
   categoryLabel,
@@ -56,8 +74,6 @@ export function DishStack({
   dishes: Dish[];
   index: number;
   onIndexChange: (i: number) => void;
-  /** Called when the visitor goes past the first (-1) or last (+1) dish; returns whether it moved on. */
-  onBoundary: (direction: -1 | 1) => boolean;
   locale: MenuLocale;
   icon: CategoryIconName;
   categoryLabel: string;
@@ -68,6 +84,7 @@ export function DishStack({
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [drag, setDrag] = useState<number | null>(null);
   const gesture = useRef<{ id: number; y: number; t: number; last: number; vy: number; moved: boolean } | null>(null);
+  const shownPos = useRef(index); // deck position on screen after the last render
   const indexRef = useRef(index);
   indexRef.current = index;
 
@@ -80,23 +97,25 @@ export function DishStack({
     return () => ro.disconnect();
   }, []);
 
-  // card geometry from the space available
-  // the two cards on each side peek out by about a strip each, as in the reference
-  const peek1 = clamp(size.h * 0.1, 40, 74);
-  const peek: [number, number] = [peek1, peek1 * 0.82];
-  const width = Math.min(size.w - 28, 440);
-  const height = Math.max(250, Math.min(size.h - 2 * (peek[0] + peek[1]) - 8, width * 1.25));
-  const g: Geometry = { width, height, peek };
+  // card geometry from the space available, in the reference's proportions
+  const width = Math.min(size.w - 26, 440);
+  const edge = clamp(size.h * 0.046, 18, 34); // each thin edge above
+  const next = clamp(size.h * 0.15, 60, 124); // the next dish below
+  const after = clamp(size.h * 0.06, 24, 48); // and the one after it
+  const g: Geometry = {
+    height: 0,
+    above: [0, edge, edge * 2, edge * 3, edge * 3 + 4],
+    below: [0, next, next + after, next + after + 4],
+  };
+  const height = Math.max(250, Math.min(size.h - edge * 3 - next - after - 6, width * 1.4));
+  g.height = height;
   const pitch = height * 0.45; // drag distance for one dish
 
   const step = useCallback(
     (dir: -1 | 1) => {
-      const next = indexRef.current + dir;
-      if (next < 0 || next >= dishes.length) return onBoundary(dir);
-      onIndexChange(next);
-      return true;
+      onIndexChange((indexRef.current + dir + dishes.length) % dishes.length);
     },
-    [dishes.length, onBoundary, onIndexChange],
+    [dishes.length, onIndexChange],
   );
 
   // mouse wheel and trackpads: one dish per gesture, however long its momentum lasts
@@ -184,12 +203,13 @@ export function DishStack({
   };
 
   // live position while dragging, with resistance past the ends
-  let pos = index;
-  if (drag !== null) {
-    pos = index - drag / pitch;
-    if (pos < 0) pos = -Math.min(0.6, -pos * 0.35);
-    if (pos > dishes.length - 1) pos = dishes.length - 1 + Math.min(0.6, (pos - dishes.length + 1) * 0.35);
-  }
+  // live position while dragging
+  const pos = drag !== null ? index - drag / pitch : index;
+  const n = dishes.length;
+  const half = n / 2;
+  useEffect(() => {
+    shownPos.current = pos;
+  });
 
   const transition =
     drag !== null
@@ -213,9 +233,13 @@ export function DishStack({
     >
       {size.w > 0 &&
         dishes.map((dish, i) => {
-          const d = i - pos;
-          if (Math.abs(d) > 3.2) return null;
+          const d = loop(i - pos, n);
+          if (d < -4.2 || d > 3.2) return null;
           const p = place(d, g);
+          // the loop's seam is at the very back: cards fade out there before they swap sides
+          const seam = n > 1 && (n % 2 === 1 || d < 0) ? clamp((half - Math.abs(d)) / 0.5, 0, 1) : 1;
+          // a card that swaps sides jumps there instead of travelling through the deck
+          const jumped = Math.abs(d - loop(i - shownPos.current, n)) > 1.5;
           const front = i === index;
           return (
             <div
@@ -232,12 +256,13 @@ export function DishStack({
                 width,
                 height,
                 marginLeft: -width / 2,
-                marginTop: -height / 2,
+                // the front card sits where the edges above and the peeks below balance out
+                marginTop: -height / 2 + (g.above[3] - g.below[2]) / 2,
                 zIndex: p.z,
-                opacity: p.opacity,
+                opacity: p.opacity * seam,
                 transform: `translateY(${p.ty}px) scale(${p.s})`,
                 filter: p.blur > 0.05 || p.bright < 0.99 ? `blur(${p.blur}px) brightness(${p.bright})` : "none",
-                transition,
+                transition: jumped ? "none" : transition,
                 willChange: "transform, filter",
               }}
             >
@@ -248,11 +273,11 @@ export function DishStack({
                 style={{
                   boxShadow:
                     Math.abs(d) < 0.5
-                      ? "0 0 0 1px rgba(240,196,125,0.55), 0 0 28px rgba(214,150,70,0.28), 0 30px 60px -20px rgba(0,0,0,0.85)"
-                      : "0 18px 40px -18px rgba(0,0,0,0.8)",
+                      ? "0 0 0 1px rgba(240,196,125,0.6), 0 0 26px rgba(214,150,70,0.22), 0 30px 60px -20px rgba(0,0,0,0.9)"
+                      : "0 0 0 1px rgba(255,236,205,0.26), 0 18px 40px -18px rgba(0,0,0,0.8)",
                 }}
               >
-                <DishCard dish={dish} locale={locale} icon={icon} categoryLabel={categoryLabel} width={width} height={height} faces={p.faces} priority={i === 0} />
+                <DishCard dish={dish} locale={locale} icon={icon} categoryLabel={categoryLabel} text={p.text} priority={i <= 1} />
               </div>
             </div>
           );

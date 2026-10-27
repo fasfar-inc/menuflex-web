@@ -1,4 +1,4 @@
-import type { DishTag, MenuLocale } from "@/content/menus/types";
+import type { MenuLocale } from "@/content/menus/types";
 
 /** Interface copy for the interactive menu, separate from each restaurant's own content. */
 export const menuStrings: Record<
@@ -11,9 +11,7 @@ export const menuStrings: Record<
     close: string;
     dishes: string;
     hint: string;
-    next: (category: string) => string;
     position: (n: number, total: number) => string;
-    tags: Record<DishTag, string>;
     poweredBy: string;
   }
 > = {
@@ -25,16 +23,7 @@ export const menuStrings: Record<
     close: "Close",
     dishes: "Dishes",
     hint: "Scroll for next dish",
-    next: (c) => `Next: ${c}`,
     position: (n, t) => `Dish ${n} of ${t}`,
-    tags: {
-      fresh: "Fresh Ingredients",
-      chef: "Chef's Special",
-      sustainable: "Sustainable Catch",
-      vegetarian: "Vegetarian",
-      spicy: "Spicy",
-      signature: "House Signature",
-    },
     poweredBy: "Menu by MenuFlex",
   },
   tr: {
@@ -45,16 +34,7 @@ export const menuStrings: Record<
     close: "Kapat",
     dishes: "Yemekler",
     hint: "Sonraki yemek için kaydırın",
-    next: (c) => `Sıradaki: ${c}`,
     position: (n, t) => `Yemek ${n} / ${t}`,
-    tags: {
-      fresh: "Taze Malzemeler",
-      chef: "Şefin Önerisi",
-      sustainable: "Sürdürülebilir Av",
-      vegetarian: "Vejetaryen",
-      spicy: "Acı",
-      signature: "Evin İmzası",
-    },
     poweredBy: "Menü: MenuFlex",
   },
 };
