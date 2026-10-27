@@ -113,7 +113,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   };
 
   return (
-    <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[radial-gradient(90%_60%_at_50%_45%,#17130f_0%,#0b0907_60%,#070605_100%)] text-cream">
+    <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[#0d0b09] text-cream">
       <MenuBackdrop />
 
       {/* header, kept small so the dishes have the room: full menu, restaurant, language */}

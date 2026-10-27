@@ -115,8 +115,8 @@ Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 tapping the selected plate opens the whole photo full screen (✕, a tap
 outside, a swipe down or Escape closes it). A dish without one stays off the
 wheel (it is still in the full-menu list) until its photo is added. Behind the menu, `MenuBackdrop.tsx` draws
-candlelight glows, fine gold olive branches, a soft MenuFlex wordmark, grain
-and gold dust (nothing to download; the glows hold still with reduced motion).
+one even dark with a large, soft MenuFlex wordmark and a fine grain (nothing
+to download).
 Entries marked `demo: true` are kept out of search engines.
 LIMAN at `/m/liman/` is fictional and is never listed in Our Work.
 
