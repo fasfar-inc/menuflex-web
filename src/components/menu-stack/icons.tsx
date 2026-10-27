@@ -56,14 +56,6 @@ export function WaveMark({ className = "" }: P) {
   );
 }
 
-export function ChevronUpIcon({ className = "h-6 w-6" }: P) {
-  return (
-    <svg viewBox="0 0 32 16" aria-hidden="true" className={className} {...line} strokeWidth={1.6}>
-      <path d="m3 13 13-10 13 10" />
-    </svg>
-  );
-}
-
 export function BurgerIcon({ className = "h-6 w-6" }: P) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line} strokeWidth={1.6}>

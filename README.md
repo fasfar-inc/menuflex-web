@@ -88,28 +88,24 @@ Both languages share one set of components. All copy lives in
 A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 
 - **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
-  category pills stay on screen above a deck of dish cards. The front card shows
-  the photograph, name, price and description. The other dishes of the category
-  stack behind it, smaller, dimmer and blurred: those still to come below, the
-  ones already seen as thin edges above.
-- **Changing dishes:** one deliberate swipe moves exactly one dish: up for the
-  next, down for the previous. A swipe counts once it travels 56 px (or 9% of
-  the deck's height), clearly vertically; a quick flick of 28 px or more also
-  counts. The rest of that swipe is ignored. One wheel or trackpad gesture moves
-  one dish, however long its momentum lasts. The keyboard works too: arrows,
-  Page Up/Down, Space, Home and End; Left/Right on the category pills change
-  category. Tapping a card that peeks out brings it forward.
-- **Animation:** each change plays for 460 ms with a gentle ease-out. The front
-  card scales down, moves back and blurs while the next comes forward and
-  sharpens. One lock covers every input, so nothing new starts until a change
-  has played out (`MOTION_MS` in `DishStack.tsx`).
-- **The deck is a loop:** after the last dish the first comes round again.
-  Choosing a category fades its deck in at the first dish.
+  category pills stay on screen.
+- **The dish wheel:** choosing a category shows its dishes as round plates
+  around a bronze wheel at the left edge, with the category name on the wheel.
+  The selected plate sits at the wheel's right, largest, with a gold ring; the
+  other dishes follow the curve above and below. Its name, price and
+  description sit under the wheel. This is `DishWheel.tsx`.
+- **Turning it:** one deliberate swipe up or down, one wheel or trackpad
+  gesture, an arrow key or Page Up/Down, or a tap on a plate turns the wheel by
+  exactly one dish (a tap goes straight to that dish). The plates travel along
+  the circle for 460 ms with a gentle ease-out.
+- **One change at a time:** a single lock covers every input, so nothing new
+  starts until the turn has finished. The wheel is a loop: after the last dish
+  the first comes round again.
 - **Other controls:** the menu button lists every dish, and the language switch
   changes between TR and EN (remembered; `?lang=tr` works).
 - **Behaviour:** the page fits the screen and never scrolls, so nothing locks.
-  It respects iPhone safe areas. With reduced motion the cards simply
-  cross-fade.
+  It respects iPhone safe areas. With reduced motion the wheel turns instantly
+  and the details cross-fade.
 
 Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 `liman.ts`), registered in `src/content/menus/index.ts`. Photos go in

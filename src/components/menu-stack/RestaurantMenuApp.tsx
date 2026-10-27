@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
-import { Price } from "./DishCard";
-import { DishStack, MOTION_MS, REDUCED_MS } from "./DishStack";
-import { BurgerIcon, CategoryIcon, ChevronUpIcon, CloseIcon, WaveMark } from "./icons";
+import { DishWheel, MOTION_MS, REDUCED_MS } from "./DishWheel";
+import { Price } from "./Price";
+import { BurgerIcon, CategoryIcon, CloseIcon, WaveMark } from "./icons";
 import { menuStrings } from "./strings";
 
 const SWITCH_MS = 180;
 
 /**
  * A restaurant's interactive menu: header, sticky categories and the dish
- * deck. Everything fits the viewport, so the page itself never scrolls and
- * nothing can lock it; the deck takes swipes, the wheel and the keyboard.
+ * wheel. Everything fits the viewport, so the page itself never scrolls and
+ * nothing can lock it; the wheel takes swipes, taps, the mouse wheel and keys.
  */
 export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   const [locale, setLocale] = useState<MenuLocale>(menu.defaultLocale);
@@ -69,7 +69,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
     [reduced],
   );
 
-  /** Move to another category (its first dish, or `at`), fading the deck across. */
+  /** Move to another category (its first dish, or `at`), fading the wheel across. */
   const selectCategory = useCallback(
     (next: number, at = 0) => {
       window.clearTimeout(switching.current);
@@ -77,7 +77,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
         if (at !== dish) goDish(at);
         return;
       }
-      // the new deck fades out and in; dish changes wait until it has settled
+      // the new wheel fades out and in; dish changes wait until it has settled
       lock(reduced ? REDUCED_MS : SWITCH_MS + 420);
       const go = () => {
         setCat(next);
@@ -177,10 +177,10 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
         </div>
       </nav>
 
-      {/* the deck */}
-      <main className="relative min-h-0 flex-1 pt-4 pb-1 [@media(max-height:740px)]:pt-2" role="tabpanel" aria-label={category.label[locale]}>
+      {/* the dish wheel */}
+      <main className="relative min-h-0 flex-1 pt-4 pb-[max(env(safe-area-inset-bottom),10px)] [@media(max-height:740px)]:pt-2" role="tabpanel" aria-label={category.label[locale]}>
         <div key={category.id} className={`h-full ${leaving ? "deck-out" : "deck-in"}`}>
-          <DishStack
+          <DishWheel
             dishes={category.dishes}
             index={dish}
             go={goDish}
@@ -191,20 +191,6 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           />
         </div>
       </main>
-
-      {/* where scrolling leads */}
-      <footer className="relative z-10 flex h-[56px] shrink-0 items-start justify-center pb-[env(safe-area-inset-bottom)] [@media(max-height:740px)]:h-[44px]">
-        {category.dishes.length > 1 && (
-          <button
-            type="button"
-            onClick={() => goDish((dish + 1) % category.dishes.length)}
-            aria-label={s.hint}
-            className="flex h-12 w-16 items-center justify-center text-cream transition-colors hover:text-gold-bright"
-          >
-            <ChevronUpIcon className="h-[18px] w-9" />
-          </button>
-        )}
-      </footer>
 
       {overview && (
         <MenuOverview
