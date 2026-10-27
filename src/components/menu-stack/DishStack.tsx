@@ -324,9 +324,10 @@ export function DishStack({
                   borderRadius: CARD_RADIUS,
                   transition: `box-shadow var(--deck-t)`,
                   boxShadow:
+                    // the frame itself is drawn by the card; here only its glow and the shadow it casts
                     d === 0
-                      ? "0 0 0 1px rgba(240,196,125,0.6), 0 0 26px rgba(214,150,70,0.22), 0 30px 60px -20px rgba(0,0,0,0.9)"
-                      : "0 0 0 1px rgba(255,236,205,0.26), 0 18px 40px -18px rgba(0,0,0,0.8)",
+                      ? "0 0 26px rgba(214,150,70,0.22), 0 30px 60px -20px rgba(0,0,0,0.9)"
+                      : "0 0 0 rgba(214,150,70,0), 0 18px 40px -18px rgba(0,0,0,0.8)",
                 }}
               >
                 <DishCard dish={dish} locale={locale} icon={icon} categoryLabel={categoryLabel} text={p.text} width={width} priority={i <= 1} />

@@ -68,6 +68,18 @@ export function DishCard({
         </div>
         <p className="mt-[2cqw] line-clamp-2 text-[clamp(13.5px,4.3cqw,16px)] leading-[1.5] font-light text-cream-soft">{dish.description[locale]}</p>
       </div>
+
+      {/* the dish's own frame: it travels, scales and blurs with the card, and brightens in front */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 border"
+        style={{
+          borderRadius: CARD_RADIUS,
+          borderColor: `rgba(236, 196, 132, ${0.34 + 0.38 * text})`,
+          boxShadow: `inset 0 1px 0 rgba(255, 236, 205, ${0.1 + 0.12 * text})`,
+          transition: "border-color var(--deck-t), box-shadow var(--deck-t)",
+        }}
+      />
     </div>
   );
 }
