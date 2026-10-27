@@ -19,7 +19,7 @@ export const menuStrings: Record<
     categories: "Menu categories",
     close: "Close",
     dishes: "Dishes",
-    hint: "Scroll for next dish",
+    hint: "Swipe for more",
     position: (n, t) => `Dish ${n} of ${t}`,
   },
   tr: {
@@ -28,7 +28,7 @@ export const menuStrings: Record<
     categories: "Menü kategorileri",
     close: "Kapat",
     dishes: "Yemekler",
-    hint: "Sonraki yemek için kaydırın",
+    hint: "Daha fazlası için kaydırın",
     position: (n, t) => `Yemek ${n} / ${t}`,
   },
 };

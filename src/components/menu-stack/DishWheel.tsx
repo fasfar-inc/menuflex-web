@@ -28,8 +28,9 @@ const WHEEL_MIN = 50;
 const STEP_DEG = 42;
 /** Plate diameter by distance from the selected one, as a share of the orbit radius. */
 const PLATE = [0.96, 0.54, 0.46, 0.42];
-/** Height of the dish details under the wheel. */
-const INFO_H = 132;
+/** Height of the dish details under the wheel, with and without room for the swipe hint. */
+const INFO_H = 204;
+const INFO_H_SHORT = 150;
 
 /** Distance around a loop of n plates: the dishes after the selected one below (positive), the rest above. */
 function loop(x: number, n: number) {
@@ -200,7 +201,9 @@ export function DishWheel({
   };
 
   // wheel geometry: orbit radius from the space, everything else in proportion
-  const wheelH = Math.max(220, size.h - INFO_H);
+  const tall = size.h >= 600;
+  const infoH = tall ? INFO_H : INFO_H_SHORT;
+  const wheelH = Math.max(220, size.h - infoH);
   // the selected plate, big enough to see the dish, keeps its right edge clear of the screen edge
   const r = Math.max(120, Math.min(size.w * 0.7, wheelH * 0.6, (size.w - 12) / 1.48));
   // when height caps the wheel, it moves right so the category pill keeps clear of the plate
@@ -294,17 +297,48 @@ export function DishWheel({
 
       {/* the selected dish */}
       {active && (
-        <div className="absolute inset-x-0 bottom-0 px-6" style={{ height: INFO_H }}>
+        <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-6" style={{ height: infoH }}>
           <div key={active.id} className={reduced ? "" : "dish-info-in"}>
-            <div className="flex items-baseline justify-between gap-4">
-              <h2 className="min-w-0 font-serif text-[clamp(22px,6.8vw,29px)] leading-tight tracking-[-0.01em] text-cream">{active.name[locale]}</h2>
-              <Price value={active.price} className="shrink-0 font-serif text-[clamp(20px,6.2vw,27px)] text-cream" />
-            </div>
-            <p className="mt-2 line-clamp-2 text-[15px] leading-[1.5] font-light text-cream-soft">{active.description[locale]}</p>
-            <p className="mt-2 text-[11px] tracking-[0.2em] text-cream-muted tabular-nums" aria-hidden="true">
-              {index + 1} / {n}
+            {tall && <span aria-hidden="true" className="mb-3 block h-px w-10 bg-[#d9a55a]/80" />}
+            <h2
+              className={`min-w-0 font-serif leading-[1.05] tracking-[-0.01em] text-cream ${tall ? "line-clamp-2 text-[clamp(28px,8.2vw,34px)]" : "line-clamp-1 text-[clamp(22px,6.8vw,27px)]"}`}
+            >
+              {active.name[locale]}
+            </h2>
+            <p className={`line-clamp-2 font-light text-cream-soft ${tall ? "mt-2 text-[15px] leading-[1.5]" : "mt-1 text-[14px] leading-[1.45]"}`}>
+              {active.description[locale]}
             </p>
           </div>
+          <div className={`flex items-end justify-between gap-4 ${tall ? "mt-3" : "mt-2"}`}>
+            <Price
+              key={active.id}
+              value={active.price}
+              className={`bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-serif leading-none text-transparent ${tall ? "text-[clamp(28px,8vw,34px)]" : "text-[clamp(22px,6.6vw,27px)]"} ${reduced ? "" : "dish-info-in"}`}
+            />
+            {/* where this dish sits in the category */}
+            <div aria-hidden="true" className="flex w-[min(46%,calc(var(--n)*36px))] flex-col items-end gap-2 pb-1" style={{ ["--n" as string]: n }}>
+              <span className="text-[13px] tracking-[0.12em] text-cream tabular-nums">
+                {index + 1} / {n}
+              </span>
+              <span className="flex w-full gap-1.5">
+                {dishes.map((d, i) => (
+                  <span key={d.id} className={`h-[2px] flex-1 rounded-full transition-colors duration-300 ${i === index ? "bg-[#f0c47d]" : "bg-cream/25"}`} />
+                ))}
+              </span>
+            </div>
+          </div>
+          {tall && (
+            <p aria-hidden="true" className="mt-4 mb-1 flex flex-col items-center gap-1 text-[10.5px] tracking-[0.34em] text-cream-soft uppercase">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#d9a55a]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              <span className="flex items-center gap-3">
+                <span className="h-px w-6 bg-cream/40" />
+                {s.hint}
+                <span className="h-px w-6 bg-cream/40" />
+              </span>
+            </p>
+          )}
         </div>
       )}
       <p aria-live="polite" className="sr-only">

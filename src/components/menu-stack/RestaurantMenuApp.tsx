@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
 import { DishWheel, MOTION_MS, REDUCED_MS } from "./DishWheel";
-import { WaveMark } from "./icons";
+import { CategoryIcon, WaveMark } from "./icons";
 import { menuStrings } from "./strings";
 
 const SWITCH_MS = 180;
@@ -26,6 +26,20 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
     lockedUntil.current = performance.now() + ms;
   };
   const tabs = useRef<HTMLDivElement>(null);
+  // which ends of the category bar have more pills past them, to fade that edge
+  const [more, setMore] = useState({ left: false, right: false });
+  const syncMore = useCallback(() => {
+    const el = tabs.current;
+    if (!el) return;
+    const left = el.scrollLeft > 2;
+    const right = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
+    setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
+  }, []);
+  useEffect(() => {
+    syncMore();
+    window.addEventListener("resize", syncMore);
+    return () => window.removeEventListener("resize", syncMore);
+  }, [syncMore, locale]);
   const s = menuStrings[locale];
   const category = menu.categories[cat];
 
@@ -107,6 +121,13 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
 
   return (
     <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[radial-gradient(90%_60%_at_50%_45%,#17130f_0%,#0b0907_60%,#070605_100%)] text-cream">
+      {/* candlelight: soft warm glows at the corners */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <span className="absolute -top-16 -right-20 h-64 w-64 rounded-full bg-[#d9a55a]/14 blur-[70px]" />
+        <span className="absolute top-[38%] -left-24 h-56 w-56 rounded-full bg-[#b9773a]/12 blur-[80px]" />
+        <span className="absolute -bottom-20 left-1/2 h-48 w-80 -translate-x-1/2 rounded-full bg-[#d9a55a]/8 blur-[90px]" />
+      </div>
+
       {/* header: restaurant, language */}
       <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),16px)] pb-4 min-[380px]:px-4 [@media(max-height:740px)]:pt-[max(env(safe-area-inset-top),8px)] [@media(max-height:740px)]:pb-2">
         <span />
@@ -142,8 +163,11 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
 
       {/* sticky categories */}
       <nav aria-label={s.categories} className="relative z-10">
-        <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 py-1 [scrollbar-width:none] [@media(max-height:740px)]:py-0.5 [&::-webkit-scrollbar]:hidden">
-          <div className="mx-auto flex w-max min-w-[min(100%,560px)] justify-between gap-1">
+        <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey}
+          onScroll={syncMore}
+          style={{ maskImage: `linear-gradient(to right, ${more.left ? "transparent" : "#000"}, #000 24px, #000 calc(100% - 32px), ${more.right ? "transparent" : "#000"})` }}
+          className="flex overflow-x-auto px-3 py-1 [scrollbar-width:none] [@media(max-height:740px)]:py-0.5 [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto flex w-max min-w-[min(100%,560px)] shrink-0 justify-between gap-1">
             {menu.categories.map((c, i) => {
               const on = i === cat;
               return (
@@ -155,10 +179,11 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
                   aria-selected={on}
                   tabIndex={on ? 0 : -1}
                   onClick={() => selectCategory(i)}
-                  className={`h-11 shrink-0 rounded-full border px-3 text-[13px] min-[400px]:px-3.5 whitespace-nowrap transition-[background-color,border-color,color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+                  className={`flex h-11 shrink-0 items-center gap-1.5 rounded-full border pr-3.5 pl-3 text-[13px] whitespace-nowrap transition-[background-color,border-color,color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
                     on ? "border-[#f6d9a5] bg-[#f6d9a5] font-semibold text-[#17120c]" : "border-cream/25 font-medium text-cream hover:border-cream/50"
                   }`}
                 >
+                  <CategoryIcon name={c.icon} className="h-[18px] w-[18px] shrink-0" />
                   {c.label[locale]}
                 </button>
               );
