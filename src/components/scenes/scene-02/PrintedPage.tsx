@@ -59,7 +59,8 @@ export const PrintedPage = forwardRef<HTMLDivElement>(function PrintedPage(_, re
             width: (r.u1 - r.u0) * PAGE.width,
             // a one-pixel rule of the 1629 px texture
             height: 0.67 * unit,
-            background: `rgb(${INK} / ${(0.92 * 110) / 255})`,
+            // the render softens the one-pixel print rule
+            background: `rgb(${INK} / 0.22)`,
           }}
         />
       ))}

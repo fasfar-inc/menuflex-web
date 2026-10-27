@@ -15,8 +15,11 @@ const MAINS_Y = 159;
 const PRINT_Y = 8;
 
 export type DigitalMenuHandle = {
-  /** Colours and chrome: 0 = printed page (paper colours, no chrome), 1 = finished dark digital menu. */
-  setMorph: (m: number) => void;
+  /**
+   * Colours: 0 = printed page (paper colours), 1 = finished dark digital menu.
+   * Chrome (status bar, brand row, categories) follows the colours unless given.
+   */
+  setMorph: (m: number, chrome?: number) => void;
   /** Layout: 0 = Mains where it sits on the printed page, 1 = Mains under the digital chrome. */
   setLayout: (l: number) => void;
   setInteractive: (on: boolean) => void;
@@ -78,7 +81,7 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
   useImperativeHandle(
     ref,
     () => ({
-      setMorph(m) {
+      setMorph(m, chromeIn) {
         const r = root.current;
         if (!r) return;
         r.style.setProperty("--menu-bg", mix(...THEME.bg, m));
@@ -86,14 +89,15 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
         r.style.setProperty("--menu-muted", mix(...THEME.muted, m));
         r.style.setProperty("--menu-head", mix(...THEME.head, m));
         r.style.setProperty("--menu-price", mix(...THEME.price, m));
-        r.style.setProperty("--menu-rule", mixA(THEME.muted[0], 0.55, THEME.ink[1], 0.14, m));
+        r.style.setProperty("--menu-rule", mixA(THEME.muted[0], 0.3, THEME.ink[1], 0.14, m));
         if (chrome.current) {
-          const c = Math.min(1, Math.max(0, (m - 0.35) / 0.65));
+          const c = chromeIn ?? Math.min(1, Math.max(0, (m - 0.3) / 0.4));
           chrome.current.style.opacity = String(c);
           chrome.current.style.transform = `translateY(${-10 * (1 - c)}px)`;
         }
-        // everything that is not on the printed column appears with the digital chrome
-        r.style.setProperty("--menu-extra", String(Math.min(1, Math.max(0, (m - 0.45) / 0.55))));
+        // everything that is not on the printed column appears once the chrome is solid, so it never shows through it
+        const solid = chromeIn ?? Math.min(1, Math.max(0, (m - 0.3) / 0.4));
+        r.style.setProperty("--menu-extra", String(Math.min(1, Math.max(0, (solid - 0.6) / 0.4))));
       },
       setLayout(l) {
         // until the visitor can use it, the menu stays anchored on the printed MAINS column

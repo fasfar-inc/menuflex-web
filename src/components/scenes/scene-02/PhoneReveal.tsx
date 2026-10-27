@@ -27,11 +27,12 @@ export const DIGITAL = {
   lift: [0.4, 0.56] as const, // the page comes forward off the book
   book: [0.42, 0.68] as const, // the book falls back and fades
   print: [0.41, 0.53] as const, // the columns beside MAINS dissolve down the page
-  shape: [0.44, 0.84] as const, // page -> phone screen: position, size and layout
+  shape: [0.44, 0.8] as const, // page -> phone screen: position, size and layout
   paper: [0.44, 0.6] as const, // rendered paper texture gives way to a flat surface
-  color: [0.56, 0.86] as const, // paper becomes the dark digital menu
-  corner: [0.6, 0.86] as const, // square page corners become the screen's
-  device: [0.7, 0.88] as const, // phone frame forms around the screen
+  color: [0.57, 0.83] as const, // paper becomes the dark digital menu
+  chrome: [0.78, 0.88] as const, // status bar, brand and categories, once the page is the screen
+  corner: [0.58, 0.82] as const, // square page corners become the screen's
+  device: [0.66, 0.86] as const, // phone frame grows outwards from the screen's edge
   interactive: 0.97,
 };
 
@@ -131,15 +132,22 @@ export function PhoneReveal() {
       if (screen.current) screen.current.style.borderRadius = `${radius}px`;
 
       menu.current?.setLayout(s);
-      menu.current?.setMorph(m);
+      menu.current?.setMorph(m, reduced ? 1 : smoother(span(q, ...DIGITAL.chrome)));
 
       const ui = reduced ? span(q, 0.35, 0.65) : span(q, ...DIGITAL.ui);
       el.style.opacity = String(ui);
       el.style.visibility = ui > 0 ? "visible" : "hidden";
 
-      if (device.current) {
-        device.current.style.opacity = String(dv);
-        device.current.style.transform = `scale(${1.045 - 0.045 * dv})`;
+      const d = device.current;
+      if (d) {
+        // a dark rim that grows out of the screen edge into the full bezel
+        const b = BEZEL * dv;
+        d.style.left = d.style.top = `${-b}px`;
+        d.style.width = `${SCREEN.width + 2 * b}px`;
+        d.style.height = `${SCREEN.height + 2 * b}px`;
+        d.style.opacity = String(Math.min(1, dv * 4));
+        d.style.setProperty("--device-radius", `${radius + b}px`);
+        d.style.setProperty("--device-buttons", String(span(dv, 0.6, 1)));
       }
       if (island.current) island.current.style.opacity = String(dv);
 
@@ -179,17 +187,17 @@ export function PhoneReveal() {
           <div
             className="absolute inset-0"
             style={{
-              borderRadius: RADIUS,
+              borderRadius: "var(--device-radius)",
               background: "linear-gradient(145deg, #3a3835 0%, #1b1a18 38%, #0d0c0b 62%, #2b2926 100%)",
               boxShadow:
                 "inset 0 0 0 1.5px rgba(255,255,255,0.14), inset 0 0 0 4px #0a0a09, 0 2px 4px rgba(40,30,20,0.18), 0 30px 60px -18px rgba(40,30,20,0.45), 0 60px 120px -40px rgba(40,30,20,0.35)",
             }}
           />
-          {/* side buttons */}
-          <span className="absolute -left-[3px] top-[150px] h-[34px] w-[3px] rounded-l bg-[#2a2826]" />
-          <span className="absolute -left-[3px] top-[205px] h-[58px] w-[3px] rounded-l bg-[#2a2826]" />
-          <span className="absolute -left-[3px] top-[275px] h-[58px] w-[3px] rounded-l bg-[#2a2826]" />
-          <span className="absolute -right-[3px] top-[230px] h-[90px] w-[3px] rounded-r bg-[#2a2826]" />
+          {/* side buttons, once the frame is formed */}
+          <span style={{ opacity: "var(--device-buttons)" }} className="absolute -left-[3px] top-[150px] h-[34px] w-[3px] rounded-l bg-[#2a2826]" />
+          <span style={{ opacity: "var(--device-buttons)" }} className="absolute -left-[3px] top-[205px] h-[58px] w-[3px] rounded-l bg-[#2a2826]" />
+          <span style={{ opacity: "var(--device-buttons)" }} className="absolute -left-[3px] top-[275px] h-[58px] w-[3px] rounded-l bg-[#2a2826]" />
+          <span style={{ opacity: "var(--device-buttons)" }} className="absolute -right-[3px] top-[230px] h-[90px] w-[3px] rounded-r bg-[#2a2826]" />
         </div>
         {/* the lifted page: rendered paper first, then the screen's surface */}
         <div ref={sheet} aria-hidden="true" className="pointer-events-none absolute">
