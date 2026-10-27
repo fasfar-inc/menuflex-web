@@ -17,7 +17,7 @@ export const MenuObject = forwardRef<HTMLDivElement, { className?: string }>(fun
     <div
       ref={ref}
       data-menu-object
-      className={`absolute origin-[45%_90%] will-change-transform ${className}`}
+      className={`absolute ${className}`}
       style={rectStyle(menu.rect)}
     >
       <Image
