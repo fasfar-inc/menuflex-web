@@ -112,26 +112,26 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
     <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-[radial-gradient(90%_60%_at_50%_45%,#17130f_0%,#0b0907_60%,#070605_100%)] text-cream">
       <MenuBackdrop />
 
-      {/* header: full menu, restaurant, language */}
-      <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),16px)] pb-4 min-[380px]:px-4 [@media(max-height:740px)]:pt-[max(env(safe-area-inset-top),8px)] [@media(max-height:740px)]:pb-2">
+      {/* header, kept small so the dishes have the room: full menu, restaurant, language */}
+      <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),6px)] min-[380px]:px-4">
         <button
           type="button"
           onClick={() => setOverview(true)}
           aria-label={s.overview}
           aria-haspopup="dialog"
-          className="-ml-1 flex h-12 w-12 items-center justify-center text-cream transition-colors hover:text-gold-bright"
+          className="-ml-1 flex h-11 w-11 items-center justify-center text-cream transition-colors hover:text-gold-bright"
         >
-          <BurgerIcon className="h-7 w-7" />
+          <BurgerIcon className="h-6 w-6" />
         </button>
         <div className="flex min-w-0 flex-col items-center">
-          <WaveMark className="h-[17px] w-[64px] text-[#d9a55a] [@media(max-height:740px)]:h-[13px] [@media(max-height:740px)]:w-[50px]" />
-          <h1 className="mt-1 bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-display text-[clamp(2.1rem,10vw,2.6rem)] leading-none [@media(max-height:740px)]:text-[2rem] font-semibold tracking-[0.02em] text-transparent">
+          <WaveMark className="h-[9px] w-[34px] text-[#d9a55a]" />
+          <h1 className="mt-0.5 bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-display text-[1.45rem] leading-none font-semibold tracking-[0.04em] text-transparent">
             {menu.name}
           </h1>
-          <p className="mt-1.5 text-[10.5px] font-medium [@media(max-height:740px)]:mt-1 [@media(max-height:740px)]:text-[10px] tracking-[0.24em] whitespace-nowrap text-[#d9a55a] uppercase">{menu.subtitle[locale]}</p>
+          <p className="mt-0.5 text-[8.5px] font-medium tracking-[0.26em] whitespace-nowrap text-[#d9a55a] uppercase">{menu.subtitle[locale]}</p>
         </div>
         {menu.locales.length > 1 ? (
-          <div role="group" aria-label={s.language} className="-mr-1 flex items-center justify-end self-start pt-2 text-[15px] font-medium">
+          <div role="group" aria-label={s.language} className="-mr-1 flex items-center justify-end text-[14px] font-medium">
             {menu.locales.map((l, i) => (
               <span key={l} className="flex items-center">
                 {i > 0 && <span aria-hidden="true" className="h-3.5 w-px bg-cream/40" />}
@@ -155,7 +155,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
 
       {/* sticky categories */}
       <nav aria-label={s.categories} className="relative z-10">
-        <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 py-1 [scrollbar-width:none] [@media(max-height:740px)]:py-0.5 [&::-webkit-scrollbar]:hidden">
+        <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 pt-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max min-w-[min(100%,560px)] justify-between gap-1">
             {menu.categories.map((c, i) => {
               const on = i === cat;
@@ -168,7 +168,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
                   aria-selected={on}
                   tabIndex={on ? 0 : -1}
                   onClick={() => selectCategory(i)}
-                  className={`h-11 shrink-0 rounded-full border px-3 text-[13px] min-[400px]:px-3.5 whitespace-nowrap transition-[background-color,border-color,color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+                  className={`h-9 shrink-0 rounded-full border px-3 text-[13px] min-[400px]:px-3.5 whitespace-nowrap transition-[background-color,border-color,color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
                     on ? "border-[#f6d9a5] bg-[#f6d9a5] font-semibold text-[#17120c]" : "border-cream/25 font-medium text-cream hover:border-cream/50"
                   }`}
                 >
@@ -181,7 +181,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       </nav>
 
       {/* the dish wheel */}
-      <main className="relative min-h-0 flex-1 pt-4 pb-[max(env(safe-area-inset-bottom),10px)] [@media(max-height:740px)]:pt-2" role="tabpanel" aria-label={category.label[locale]}>
+      <main className="relative min-h-0 flex-1 pt-1 pb-[max(env(safe-area-inset-bottom),10px)]" role="tabpanel" aria-label={category.label[locale]}>
         <div key={category.id} className={`h-full ${leaving ? "deck-out" : "deck-in"}`}>
           <DishWheel
             dishes={category.dishes}
