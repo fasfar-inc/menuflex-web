@@ -474,8 +474,9 @@ def build(scale, samples, exposure):
     cam_data.sensor_fit = "VERTICAL"
     cam_data.sensor_height = 24.0
     cam_data.lens = cam_data.sensor_height / (2 * (VIEW[3] / 2) / F)
-    cam_data.shift_x = ((VIEW[2] / 2) - (CX - VIEW[0])) / VIEW[2]
-    cam_data.shift_y = ((CY - VIEW[1]) - VIEW[3] / 2) / VIEW[2]
+    # with a vertical sensor fit, lens shift is measured in units of the image height
+    cam_data.shift_x = ((VIEW[2] / 2) - (CX - VIEW[0])) / VIEW[3]
+    cam_data.shift_y = ((CY - VIEW[1]) - VIEW[3] / 2) / VIEW[3]
     cam_data.clip_start, cam_data.clip_end = 0.5, 80
     cam = new_object("Camera", cam_data)
     sc.camera = cam

@@ -42,7 +42,7 @@ export function HeroScene() {
       className="studio-backdrop relative isolate flex flex-col overflow-hidden lg:block lg:h-[100svh] lg:min-h-[680px]"
     >
       {/* Menu stage — sits on the right half and bleeds off the edge on desktop */}
-      <div data-menu-pin className="pointer-events-none relative z-0 mx-auto mt-2 w-[118%] max-w-none -translate-x-[4%] sm:w-[96%] sm:translate-x-[4%] lg:absolute lg:top-1/2 lg:right-0 lg:mt-0 lg:w-[min(58vw,calc(128svh-230px))] lg:translate-x-0 lg:-translate-y-[47%] order-2">
+      <div data-menu-pin className="pointer-events-none relative z-0 mt-2 -ml-[5%] w-[112%] max-w-none sm:mx-auto sm:w-[96%] sm:translate-x-[4%] lg:absolute lg:top-1/2 lg:right-0 lg:mt-0 lg:w-[min(58vw,calc(128svh-230px))] lg:translate-x-0 lg:-translate-y-[47%] order-2">
         <MenuStage />
       </div>
 

@@ -14,9 +14,9 @@ function loadOrder(count: number) {
 }
 
 /**
- * Scrubs the pre-rendered menu opening with scroll progress. Neighbouring
- * frames are cross-blended so slow scrolling stays smooth, and frames that have
- * not loaded yet fall back to the nearest loaded one.
+ * Scrubs the pre-rendered menu opening with scroll progress (GSAP smooths the
+ * scroll, so frames advance like video). Frames that have not loaded yet fall
+ * back to the nearest loaded one.
  */
 export function MenuSequence({
   store,
@@ -47,6 +47,7 @@ export function MenuSequence({
     let disposed = false;
     let raf = 0;
     let readySent = false;
+    let shown: HTMLImageElement | null = null;
 
     const nearest = (i: number) => {
       for (let d = 0; d < count; d++) {
@@ -58,21 +59,12 @@ export function MenuSequence({
 
     const draw = () => {
       raf = 0;
-      const t = toFrame(store.get()) * (count - 1);
-      const i0 = Math.floor(t);
-      const i1 = Math.min(count - 1, i0 + 1);
-      const f = t - i0;
-      const a = nearest(i0);
-      const b = frames[i1];
+      const i = Math.round(toFrame(store.get()) * (count - 1));
+      const img = nearest(i);
+      if (!img || img === shown) return;
+      shown = img;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!a) return;
-      ctx.globalAlpha = 1;
-      ctx.drawImage(a, 0, 0, canvas.width, canvas.height);
-      if (b && f > 0.01 && b !== a) {
-        ctx.globalAlpha = f;
-        ctx.drawImage(b, 0, 0, canvas.width, canvas.height);
-        ctx.globalAlpha = 1;
-      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
     const schedule = () => {
       if (!raf) raf = requestAnimationFrame(draw);
