@@ -112,7 +112,10 @@ Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
 `public/m/<slug>/` and are cut to a circle (top-down shots suit the wheel best);
 tapping the selected plate opens the whole photo full screen (✕, a tap
 outside, a swipe down or Escape closes it). A dish without one gets a bronze
-plate with its category emblem. Entries marked `demo: true` are kept out of search engines.
+plate with its category emblem. Behind the menu, `MenuBackdrop.tsx` draws
+candlelight glows, fine gold olive branches, a soft MenuFlex wordmark, grain
+and gold dust (nothing to download; the glows hold still with reduced motion).
+Entries marked `demo: true` are kept out of search engines.
 LIMAN at `/m/liman/` is fictional and is never listed in Our Work.
 
 ## The QR code
