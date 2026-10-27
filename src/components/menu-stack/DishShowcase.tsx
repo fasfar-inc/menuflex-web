@@ -6,6 +6,7 @@ import { Wordmark } from "@/components/brand/BrandLogo";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
 import { Price } from "./Price";
 import { CategoryIcon } from "./icons";
+import { PhotoViewer } from "./PhotoViewer";
 import { menuStrings } from "./strings";
 
 /** One change of dish, start to finish. Inputs are ignored until it has played out. */
@@ -29,7 +30,8 @@ function loop(x: number, n: number) {
 /**
  * A category's dishes, one at a time: the selected dish's photograph large on
  * the right, its name, description and price over the left, and every dish
- * of the category as a thumbnail underneath. One swipe, one wheel gesture,
+ * of the category as a thumbnail underneath; a thumbnail opens its dish's
+ * photograph whole, full screen. One swipe, one wheel gesture,
  * one key press or a tap on a thumbnail moves to exactly one dish; `go`
  * holds the lock that keeps changes from overlapping.
  */
@@ -58,6 +60,8 @@ export function DishShowcase({
   const [size, setSize] = useState({ w: 0, h: 0 });
   const indexRef = useRef(index);
   indexRef.current = index;
+  // the dish shown whole, full screen
+  const [viewing, setViewing] = useState<Dish | null>(null);
 
   useLayoutEffect(() => {
     const el = stage.current;
@@ -271,10 +275,13 @@ export function DishShowcase({
                 key={d.id}
                 type="button"
                 data-dish={i}
-                tabIndex={-1}
-                aria-label={d.name[locale]}
+                aria-label={d.photo ? `${s.viewPhoto}: ${d.name[locale]}` : d.name[locale]}
                 aria-current={i === index ? "true" : undefined}
-                onClick={() => i !== index && go(i)}
+                onClick={() => {
+                  // the menu moves to the dish too, so it is there when the photo closes
+                  if (i !== index) go(i);
+                  if (d.photo) setViewing(d);
+                }}
                 className={`relative shrink-0 overflow-hidden rounded-[14px] border transition-[border-color,box-shadow] duration-300 ${
                   i === index
                     ? "border-[#e8b86a] shadow-[0_0_0_1px_rgba(232,184,106,0.5),0_0_22px_rgba(214,150,70,0.45)]"
@@ -305,6 +312,7 @@ export function DishShowcase({
           )}
         </>
       )}
+      {viewing && <PhotoViewer dish={viewing} locale={locale} reduced={reduced} onClose={() => setViewing(null)} />}
       <p aria-live="polite" className="sr-only">
         {active ? `${active.name[locale]}, ${active.price}. ${s.position(index + 1, n)}` : ""}
       </p>

@@ -37,7 +37,7 @@ export const liman: RestaurantMenu = {
           name: { en: "Charred Octopus", tr: "Közlenmiş Ahtapot" },
           description: { en: "Fava purée, capers, lemon oil and wild herbs.", tr: "Fava püresi, kapari, limon yağı ve yabani otlar." },
           price: "₺480",
-          photo: photo("charred-octopus", 1044, 567),
+          photo: photo("charred-octopus", 964, 446),
         },
         {
           id: "burrata",

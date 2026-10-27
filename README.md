@@ -93,7 +93,9 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
   photograph on the right, fading into the dark, with the category, name,
   description and gold price over its left side and a count with one bar per
   dish. Every dish of the category sits underneath as a thumbnail (the strip
-  scrolls sideways when they don't fit). This is `DishShowcase.tsx`.
+  scrolls sideways when they don't fit); tapping one with a photo also opens
+  the whole dish full screen (✕, a tap outside, a swipe down or Escape closes
+  it). This is `DishShowcase.tsx`.
 - **Moving through it:** one deliberate swipe up or down, one wheel or
   trackpad gesture, an arrow key or Page Up/Down moves exactly one dish; a tap
   on a thumbnail goes straight to it. The photograph slides and cross-fades for

@@ -55,3 +55,11 @@ export function WaveMark({ className = "" }: P) {
     </svg>
   );
 }
+
+export function CloseIcon({ className = "h-6 w-6" }: P) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} {...line} strokeWidth={1.6}>
+      <path d="m6 6 12 12M18 6 6 18" />
+    </svg>
+  );
+}

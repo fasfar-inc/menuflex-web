@@ -238,3 +238,27 @@ body {
 .show-out {
   animation: show-out 460ms cubic-bezier(0.4, 0, 0.6, 1) both;
 }
+
+/* Interactive menu: a dish photo opens and closes. */
+@keyframes photo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.photo-in {
+  animation: photo-in 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.photo-out {
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity 200ms ease-in,
+    transform 200ms ease-in;
+}
