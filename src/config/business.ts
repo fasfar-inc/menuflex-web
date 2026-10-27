@@ -16,14 +16,18 @@ export const business = {
   /** Public address of this website, used for absolute links. */
   siteUrl,
   /**
-   * Where the hero's demonstration QR code leads. Defaults to this site's
-   * example menu; without a site URL it is derived from the visitor's address.
+   * Where the hero's demonstration QR code leads: the configured address, or
+   * this site's example menu under the configured site URL. Without either
+   * there is no QR code, only a link to the example menu.
    */
   demoMenuUrl: env(process.env.NEXT_PUBLIC_DEMO_MENU_URL) ?? (siteUrl ? `${siteUrl}/demo/liman/` : null),
   /** The single subscription: price as displayed (e.g. "₺1.500") and its billing period. */
   price: env(process.env.NEXT_PUBLIC_SUBSCRIPTION_PRICE),
   pricePeriod: (env(process.env.NEXT_PUBLIC_SUBSCRIPTION_PERIOD) ?? "month") as "month" | "year",
 } as const;
+
+/** True once at least one way to reach MenuFlex is configured. */
+export const hasContact = Boolean(business.whatsapp || business.phone || business.email);
 
 /** Path of the example digital menu on this site. */
 export const DEMO_MENU_PATH = "/demo/liman/";

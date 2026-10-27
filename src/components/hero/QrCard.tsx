@@ -1,11 +1,14 @@
+import Link from "next/link";
 import { Wordmark } from "@/components/brand/BrandLogo";
-import { business } from "@/config/business";
+import { business, DEMO_MENU_PATH } from "@/config/business";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { QrCode } from "./QrCode";
 
 /**
  * The central demonstration QR code: a dark card with a warm gold rim, the
  * code and the MenuFlex wordmark. Sizes follow the card's width (cqw).
+ * Without a configured destination there is no code (never a decorative
+ * one), just a link to the example menu in its place.
  */
 export function QrCard({ t, className = "", style }: { t: Dictionary["qr"]; className?: string; style?: React.CSSProperties }) {
   return (
@@ -17,7 +20,19 @@ export function QrCard({ t, className = "", style }: { t: Dictionary["qr"]; clas
             "0 0 0 0.4cqw rgba(255, 214, 150, 0.25) inset, 0 0 3cqw rgba(240, 180, 100, 0.55), 0 0 14cqw rgba(214, 150, 70, 0.35), 0 4cqw 12cqw rgba(0, 0, 0, 0.6)",
         }}
       >
-        <QrCode url={business.demoMenuUrl} label={t.label} className="aspect-square w-full p-[1.5cqw]" />
+        {business.demoMenuUrl ? (
+          <QrCode url={business.demoMenuUrl} label={t.label} className="aspect-square w-full p-[1.5cqw]" />
+        ) : (
+          <Link
+            href={DEMO_MENU_PATH}
+            className="flex aspect-square w-full flex-col items-center justify-center gap-[4cqw] rounded-[10%] border-[0.6cqw] border-gold/40 px-[6cqw] text-center font-serif text-[9cqw] leading-tight text-cream transition-colors hover:border-gold-bright hover:text-gold-bright"
+          >
+            {t.open}
+            <span aria-hidden="true" className="text-[10cqw] text-gold">
+              →
+            </span>
+          </Link>
+        )}
         <Wordmark className="mt-[8.5cqw] text-[15.5cqw]" />
       </div>
     </div>

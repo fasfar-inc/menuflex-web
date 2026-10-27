@@ -8,10 +8,12 @@ import { QrCard } from "./QrCard";
 const W = 360;
 const CARD = { x: 85, y: 0, w: 190 };
 const CARD_H = (CARD.w * 306) / 255;
-const BOX = { w: 156, h: 112 };
+const BOX = { w: 156, h: 104 };
 const COLS = [0, W - BOX.w];
-const ROW_Y = [CARD_H + 44, CARD_H + 44 + 150, CARD_H + 44 + 300];
-const H = ROW_Y[2] + BOX.h + 30;
+// row pitch = menu + caption + a small gap
+const PITCH = BOX.h + 30;
+const ROW_Y = [CARD_H + 26, CARD_H + 26 + PITCH, CARD_H + 26 + 2 * PITCH];
+const H = ROW_Y[2] + BOX.h + 22;
 const SPINE_X = W / 2;
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
@@ -73,7 +75,7 @@ export function MenuConstellationMobile({ t, className = "" }: { t: Dictionary; 
               className="menu-shadow max-h-full w-full object-contain"
             />
           </div>
-          <figcaption className="mt-2 text-[11px] font-medium tracking-[0.22em] text-gold uppercase">{t.menus[m.id]}</figcaption>
+          <figcaption className="mt-1.5 text-[12px] leading-none font-medium tracking-[0.2em] text-gold uppercase">{t.menus[m.id]}</figcaption>
         </figure>
       ))}
     </div>

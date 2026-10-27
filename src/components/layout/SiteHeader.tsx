@@ -18,7 +18,8 @@ function LanguageSwitch({ locale, t }: { locale: Locale; t: Dictionary }) {
             lang={l}
             aria-label={t.language[l]}
             aria-current={l === locale ? "true" : undefined}
-            className={l === locale ? "text-gold" : "text-cream-soft transition-colors hover:text-cream"}
+            // a comfortable tap target without changing the line's height
+            className={`-mx-1.5 -my-3 px-1.5 py-3 ${l === locale ? "text-gold" : "text-cream-soft transition-colors hover:text-cream"}`}
           >
             {l.toUpperCase()}
           </Link>
@@ -28,14 +29,24 @@ function LanguageSwitch({ locale, t }: { locale: Locale; t: Dictionary }) {
   );
 }
 
-export function SiteHeader({ locale, t, workHref }: { locale: Locale; t: Dictionary; workHref: string | null }) {
+export function SiteHeader({
+  locale,
+  t,
+  workHref,
+  contactHref,
+}: {
+  locale: Locale;
+  t: Dictionary;
+  workHref: string | null;
+  contactHref: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const home = homePath[locale];
   const links = [
     { label: t.nav.home, href: home, current: true },
     ...(workHref ? [{ label: t.nav.work, href: workHref }] : []),
     { label: t.nav.how, href: `${home}#how-it-works` },
-    { label: t.nav.contact, href: `${home}#contact` },
+    ...(contactHref ? [{ label: t.nav.contact, href: contactHref }] : []),
   ];
 
   useEffect(() => {

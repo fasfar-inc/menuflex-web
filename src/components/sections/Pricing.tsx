@@ -4,7 +4,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { Section } from "./Section";
 
 /** The single MenuFlex subscription, at the configured price. */
-export function Pricing({ t, contactHref }: { t: Dictionary["pricing"]; contactHref: string }) {
+export function Pricing({ t, contactHref }: { t: Dictionary["pricing"]; contactHref: string | null }) {
   return (
     <Section id="pricing" eyebrow={t.eyebrow} title={t.title} intro={t.body} split>
       <div className="max-w-[560px] rounded-3xl border border-gold/40 bg-[linear-gradient(160deg,#211c17_0%,#15120f_70%)] p-8 shadow-[0_0_60px_-30px_rgba(214,150,70,0.6)] sm:p-10">
@@ -24,12 +24,14 @@ export function Pricing({ t, contactHref }: { t: Dictionary["pricing"]; contactH
             </li>
           ))}
         </ul>
-        <a
-          href={contactHref}
-          className="mt-9 inline-flex h-[52px] items-center rounded-full bg-gold px-8 text-[16px] font-medium text-night-950 transition-colors duration-300 hover:bg-gold-bright focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
-        >
-          {t.cta}
-        </a>
+        {contactHref && (
+          <a
+            href={contactHref}
+            className="mt-9 inline-flex h-[52px] items-center rounded-full bg-gold px-8 text-[16px] font-medium text-night-950 transition-colors duration-300 hover:bg-gold-bright focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+          >
+            {t.cta}
+          </a>
+        )}
       </div>
     </Section>
   );

@@ -17,10 +17,10 @@ export function Hero({ t, workHref }: { t: Dictionary; workHref: string | null }
   const h = t.hero;
   return (
     <section aria-labelledby="hero-title" className="stone-backdrop relative isolate overflow-hidden xl:min-h-[100svh]">
-      <div className="relative mx-auto px-5 pt-[112px] pb-14 sm:px-8 lg:grid lg:max-w-[1180px] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-12 lg:px-12 lg:pt-[120px] lg:pb-16 xl:block xl:max-w-none xl:h-[calc(var(--u)*1055)] xl:w-[calc(var(--u)*1491)] xl:p-0">
+      <div className="relative mx-auto px-5 pt-[104px] pb-10 sm:px-8 lg:grid lg:max-w-[1180px] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-12 lg:px-12 lg:pt-[120px] lg:pb-16 xl:block xl:max-w-none xl:h-[calc(var(--u)*1055)] xl:w-[calc(var(--u)*1491)] xl:p-0">
         <div className="relative z-10 max-w-[560px] lg:max-w-[520px] xl:absolute xl:top-[calc(var(--u)*188)] xl:left-[calc(var(--u)*77)] xl:max-w-none">
           <p
-            className="anim-rise flex flex-wrap items-center gap-x-4 text-[11px] font-medium tracking-[0.34em] uppercase sm:text-[12px] xl:gap-x-[calc(var(--u)*18)] xl:text-[calc(var(--u)*13.5)]"
+            className="anim-rise flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium tracking-[0.3em] uppercase sm:text-[12px] xl:gap-x-[calc(var(--u)*18)] xl:text-[calc(var(--u)*13.5)]"
             style={delay(0.1)}
           >
             <span className="text-gold">{h.eyebrow[0]}</span>
@@ -66,7 +66,7 @@ export function Hero({ t, workHref }: { t: Dictionary; workHref: string | null }
         <MenuConstellation t={t} className="absolute top-[calc(var(--u)*80)] left-[calc(var(--u)*500)] hidden w-[calc(var(--u)*991)] xl:block" />
 
         {/* phones and tablets: QR code first, menus in pairs below */}
-        <MenuConstellationMobile t={t} className="mx-auto mt-14 w-full max-w-[460px] lg:mt-0 lg:w-[min(420px,calc((100svh-150px)*0.6))] xl:hidden" />
+        <MenuConstellationMobile t={t} className="mx-auto mt-10 w-full max-w-[460px] lg:mt-0 lg:w-[min(420px,calc((100svh-150px)*0.6))] xl:hidden" />
       </div>
     </section>
   );

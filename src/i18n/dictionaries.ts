@@ -37,6 +37,7 @@ const en = {
   qr: {
     label: "Demo QR code: scan to open the example LIMAN digital menu",
     caption: "Demo · scan to try",
+    open: "Open the demo menu",
   },
   work: {
     eyebrow: "Our Work",
@@ -87,7 +88,6 @@ const en = {
       subject: "MenuFlex enquiry",
       intro: "Hello MenuFlex,",
     },
-    unavailable: "Contact details will appear here soon.",
   },
   footer: { rights: "All rights reserved.", product: "A FASFAR product." },
   demo: {
@@ -127,6 +127,7 @@ const tr: Dictionary = {
   qr: {
     label: "Demo QR kod: örnek LIMAN dijital menüsünü açmak için okutun",
     caption: "Demo · okutup deneyin",
+    open: "Demo menüyü açın",
   },
   work: {
     eyebrow: "Çalışmalarımız",
@@ -177,7 +178,6 @@ const tr: Dictionary = {
       subject: "MenuFlex talebi",
       intro: "Merhaba MenuFlex,",
     },
-    unavailable: "İletişim bilgileri yakında burada olacak.",
   },
   footer: { rights: "Tüm hakları saklıdır.", product: "Bir FASFAR ürünüdür." },
   demo: {
