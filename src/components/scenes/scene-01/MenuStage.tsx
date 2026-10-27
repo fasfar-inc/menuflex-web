@@ -114,6 +114,9 @@ export function MenuStage() {
         const mask = q > 0 ? pageMask(q) : "none";
         c.style.maskImage = mask;
         c.style.setProperty("-webkit-mask-image", mask);
+        // the two gradients must intersect into a soft window, not add up
+        c.style.maskComposite = "intersect";
+        c.style.setProperty("-webkit-mask-composite", "source-in");
       }
       // the rendered frames carry their own shadow on the table
       if (shadowFade.current) shadowFade.current.style.opacity = String(1 - mix);

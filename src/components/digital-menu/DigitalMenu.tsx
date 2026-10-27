@@ -47,6 +47,8 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
   const tabs = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState("mains");
   const [interactive, setInteractiveState] = useState(false);
+  const target = useRef<string | null>(null);
+  const targetTop = useRef(0);
 
   /** Section position in scroll coordinates (the content wrapper is the offset parent). */
   const sectionTop = useCallback((id: string) => {
@@ -103,6 +105,13 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
     if (!s) return;
     let current = limanMenu[0].id;
     for (const c of limanMenu) if (sectionTop(c.id) - CHROME - 24 <= s.scrollTop) current = c.id;
+    // the last sections can't reach the top: at the bottom, the last one is active
+    if (s.scrollTop + s.clientHeight >= s.scrollHeight - 2) current = limanMenu[limanMenu.length - 1].id;
+    if (target.current) {
+      // while a tapped tab scrolls its section into view, keep that tab selected
+      if (current === target.current || Math.abs(s.scrollTop - targetTop.current) < 4) target.current = null;
+      else return;
+    }
     setActive((a) => (a === current ? a : current));
   };
 
@@ -116,7 +125,11 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
   const go = (id: string) => {
     const s = scroller.current;
     if (!s) return;
-    s.scrollTo({ top: sectionTop(id) - CHROME - 14, behavior: "smooth" });
+    const top = Math.min(sectionTop(id) - CHROME - 14, s.scrollHeight - s.clientHeight);
+    target.current = id;
+    targetTop.current = top;
+    setActive(id);
+    s.scrollTo({ top, behavior: "smooth" });
   };
 
   return (

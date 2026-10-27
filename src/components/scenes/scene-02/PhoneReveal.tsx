@@ -88,6 +88,13 @@ export function PhoneReveal() {
       }
       const g = reduced ? grow : 1 + (grow - 1) * smoother(span(q, ...DIGITAL.grow));
       el.style.transform = g === 1 ? "" : `scale(${g})`;
+      // small screens: the chapter rail sits under the stage, so clear it before the phone grows over it
+      const rail = document.querySelector<HTMLElement>("[data-footer-rail]");
+      if (rail) {
+        const r = grow > 1 ? 1 - span(q, reduced ? 0.35 : DIGITAL.grow[0] - 0.06, reduced ? 0.6 : DIGITAL.grow[0] + 0.04) : 1;
+        rail.style.opacity = String(r);
+        rail.style.visibility = r > 0 ? "visible" : "hidden";
+      }
 
       const on = q >= DIGITAL.interactive;
       el.style.pointerEvents = on ? "auto" : "none";

@@ -39,7 +39,7 @@ export function HeroScene() {
       ref={root}
       id="scene-paper"
       aria-labelledby="hero-title"
-      className="studio-backdrop relative isolate flex flex-col overflow-hidden lg:block lg:h-[100svh] lg:min-h-[680px]"
+      className="studio-backdrop relative isolate flex flex-col overflow-hidden pb-[max(0px,calc(50svh-43.6vw-140px))] sm:pb-[max(0px,calc(50svh-37.3vw-110px))] lg:block lg:h-[100svh] lg:min-h-[680px] lg:pb-0"
     >
       {/* Menu stage — sits on the right half and bleeds off the edge on desktop */}
       <div data-menu-pin className="pointer-events-none relative z-0 mt-2 -ml-[5%] w-[112%] max-w-none sm:mx-auto sm:w-[96%] sm:translate-x-[4%] lg:absolute lg:top-1/2 lg:right-0 lg:mt-0 lg:w-[min(58vw,calc(128svh-230px))] lg:translate-x-0 lg:-translate-y-[47%] order-2">
@@ -83,7 +83,7 @@ export function HeroScene() {
       </div>
 
       {/* Footer rail: scroll hint + chapter indicator */}
-      <div className="relative z-10 order-3 mx-auto flex w-full max-w-[1680px] flex-col items-start gap-7 md:flex-row md:items-end md:justify-between md:gap-6 px-5 pt-6 pb-8 sm:px-8 lg:absolute lg:inset-x-0 lg:bottom-0 lg:px-[10%] lg:pb-[44px] 2xl:pr-[56px]">
+      <div data-footer-rail className="relative z-10 order-3 mx-auto flex w-full max-w-[1680px] flex-col items-start gap-7 md:flex-row md:items-end md:justify-between md:gap-6 px-5 pt-6 pb-8 sm:px-8 lg:absolute lg:inset-x-0 lg:bottom-0 lg:px-[10%] lg:pb-[44px] 2xl:pr-[56px]">
         <div data-reveal>
           <div data-scroll-hint className="flex items-center gap-5 text-[12px] text-ink-soft">
             <span aria-hidden="true" className="h-10 w-px bg-ink/25" />
