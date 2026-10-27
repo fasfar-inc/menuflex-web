@@ -1,26 +1,23 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { limanMenu } from "@/components/menu/limanMenu";
 import { MenuObject } from "@/components/menu/MenuObject";
-import type { BookFraming, BookPose } from "@/components/menu/three/BookScene";
-import { CANVAS_VIEW } from "@/components/menu/three/canvasView";
-import { bookRig } from "@/components/menu/three/bookRig";
+import { MenuSequence } from "@/components/menu/sequence/MenuSequence";
+import { CANVAS_VIEW, STAGE_VIEW as stage } from "@/components/menu/sequence/openingFrames";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useOpeningProgress } from "./OpeningSequence";
-
-const BookCanvas = dynamic(() => import("@/components/menu/three/BookCanvas"), { ssr: false });
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const span = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 
-/** Dissolve window from the approved photograph to the 3D menu. */
-const DISSOLVE = [0.012, 0.085] as const;
+/** Dissolve window from the approved photograph to the rendered sequence. */
+const DISSOLVE = [0.012, 0.06] as const;
+/** Scroll progress -> sequence time. Frame 0 is held through the dissolve. */
+const toFrame = (p: number) => span(p, 0.03, 0.97);
 
 // canvas box relative to the stage box
-const { stage } = bookRig;
 const canvasBox = {
   left: `${((CANVAS_VIEW.x - stage.x) / stage.width) * 100}%`,
   top: `${((CANVAS_VIEW.y - stage.y) / stage.height) * 100}%`,
@@ -28,23 +25,12 @@ const canvasBox = {
   height: `${(CANVAS_VIEW.height / stage.height) * 100}%`,
 };
 
-const FRAMING_WIDE: BookFraming = { centerX: 1182, centerY: 470, width: 860 };
-
-/** Below `lg` the stage is wider than the screen: centre the open spread on the viewport instead. */
-function compactFraming(stageEl: HTMLElement): BookFraming {
-  const r = stageEl.getBoundingClientRect();
-  const vw = document.documentElement.clientWidth;
-  const fx = (vw / 2 - r.left) / r.width;
-  const fit = Math.min(0.88 * vw, 0.92 * r.width) / r.width;
-  return { centerX: stage.x + fx * stage.width, centerY: 472, width: fit * stage.width };
-}
-
 /**
  * Scene 01 stage. Layers, back to front:
  *   1. studio backdrop (window light + leaf shadows, menu removed)
  *   2. contact shadow on the table, reacting to the menu's height
  *   3. the approved photograph of the menu (opening frame)
- *   4. the 3D LIMAN menu, which takes over as the visitor scrolls
+ *   4. the rendered opening sequence, which takes over as the visitor scrolls
  */
 export function MenuStage() {
   const store = useOpeningProgress();
@@ -57,25 +43,19 @@ export function MenuStage() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const ready = useRef(false);
   const idle = useRef<gsap.core.Timeline | null>(null);
-  const [load3d, setLoad3d] = useState(false);
-  const [framing, setFraming] = useState<BookFraming>(FRAMING_WIDE);
+  const [loadFrames, setLoadFrames] = useState(false);
 
-  // Load the 3D menu after first paint, only for visitors who will see it move.
+  // Load the opening frames after first paint, only for visitors who will see it move.
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
     if (!motion.matches) return;
-    const compact = window.matchMedia("(max-width: 1023.98px)");
-    const pick = () => setFraming(compact.matches && root.current ? compactFraming(root.current) : FRAMING_WIDE);
-    pick();
-    window.addEventListener("resize", pick);
-    const start = () => setLoad3d(true);
+    const start = () => setLoadFrames(true);
     const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
       .requestIdleCallback;
     let handle: number | undefined;
     if (document.readyState === "complete") handle = ric ? ric(start, { timeout: 1500 }) : window.setTimeout(start, 300);
     else window.addEventListener("load", start, { once: true });
     return () => {
-      window.removeEventListener("resize", pick);
       window.removeEventListener("load", start);
       if (handle) window.clearTimeout(handle);
     };
@@ -86,7 +66,8 @@ export function MenuStage() {
       const mix = ready.current ? span(p, DISSOLVE[0], DISSOLVE[1]) : 0;
       if (photoRef.current) photoRef.current.style.opacity = String(1 - mix);
       if (canvasRef.current) canvasRef.current.style.opacity = String(mix);
-      if (shadowFade.current) shadowFade.current.style.opacity = String(1 - span(p, 0.02, 0.35));
+      // the rendered frames carry their own shadow on the table
+      if (shadowFade.current) shadowFade.current.style.opacity = String(1 - mix);
 
       // hand the floating idle motion over to the scroll sequence
       const tl = idle.current;
@@ -108,17 +89,6 @@ export function MenuStage() {
     ready.current = true;
     apply(store.get());
   }, [apply, store]);
-
-  const onPose = useCallback((pose: BookPose) => {
-    const el = photoRef.current;
-    if (!el || el.style.opacity === "0") return;
-    gsap.set(el, {
-      xPercent: pose.dx * 100,
-      yPercent: pose.dy * 100,
-      scale: pose.scale,
-      transformOrigin: `${pose.originX * 100}% ${pose.originY * 100}%`,
-    });
-  }, []);
 
   useGSAP(
     () => {
@@ -197,14 +167,9 @@ export function MenuStage() {
             <div ref={photoRef} data-menu-photo className="absolute inset-0 will-change-transform">
               <MenuObject />
             </div>
-            {load3d && (
-              <div
-                ref={canvasRef}
-                data-menu-3d
-                className="menu-depth-3d absolute"
-                style={{ ...canvasBox, opacity: 0 }}
-              >
-                <BookCanvas store={store} framing={framing} onReady={onReady} onPose={onPose} />
+            {loadFrames && (
+              <div ref={canvasRef} data-menu-3d className="absolute" style={{ ...canvasBox, opacity: 0 }}>
+                <MenuSequence store={store} toFrame={toFrame} onReady={onReady} />
               </div>
             )}
           </div>

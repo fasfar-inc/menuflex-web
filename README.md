@@ -35,13 +35,14 @@ src/
     brand/                 # MenuFlex logo and mark
     layout/                # Site header
     ui/                    # Shared primitives (Button)
-    menu/                  # The LIMAN menu: photo object, geometry, and the 3D book
-      three/               # React Three Fiber model, camera rig and scene
+    menu/                  # The LIMAN menu: photo object, geometry, opening sequence player
+      sequence/            # Scroll-scrubbed frame player for the rendered opening
     scenes/
       scene-01/            # "Paper" hero: headline, menu stage, chapter rail
   content/site.ts          # All copy and nav data (ready for TR/EN)
   lib/gsap.ts              # GSAP + ScrollTrigger registration
-  lib/progressStore.ts     # Tiny store that passes scroll progress to the 3D scene
+  lib/progressStore.ts     # Tiny store that passes scroll progress to the sequence player
+tools/menu-render/         # Blender (Cycles) model + render of the menu opening
 public/scene-01/           # Scene 01 imagery
 ```
 
@@ -70,27 +71,41 @@ available (about 2900 px wide, menu on a transparent background), replace
 ## Step 2: menu opening sequence
 
 Scrolling from the first screen pins the hero and plays the opening of the LIMAN menu
-(`OpeningSequence` → `MenuStage` → `BookCanvas`). It runs in three phases:
+(`OpeningSequence` → `MenuStage` → `MenuSequence`).
 
 1. **Opening frame.** The approved photograph, unchanged.
-2. **Handover.** In the first ~8% of the scroll the photograph dissolves into a
-   real-time 3D model. The model was posed by solving the camera and the book's
-   position from the photograph, and its cover and page textures are projected
-   from the same photo, so both line up during the dissolve. The photo also moves
-   with the model while the two are mixed.
-3. **Opening.** The hardcover turns on its spine. While it opens, the cover casts
-   a shadow across the pages, the pages bloom from pressed-flat into a natural
-   gutter curve, the cloth joint flexes, and the menu eases toward the camera
-   before settling as a balanced open spread. The spread holds until the pin ends.
+2. **Handover.** In the first ~5% of the scroll the photograph dissolves into frame 0
+   of a rendered sequence. The render's camera, the book's proportions and its pose
+   were solved from the photograph, and the cover and page textures are projected
+   from it, so the two line up.
+3. **Opening.** 96 frames rendered with Blender Cycles, scrubbed by GSAP ScrollTrigger:
+   the hardcover turns on its cloth joint with natural acceleration and settles back
+   a few degrees. Pages bloom from pressed-flat into an open-book curve and the first
+   sheets lift at the gutter. The book straightens while the camera eases in and then
+   pulls back to frame the spread at a three-quarter angle. Neighbouring frames are
+   cross-blended so slow scrolling stays smooth.
 
-The book is built from separate parts: back board, page block, curved page stacks,
-cloth spine, and a cover on a hinge. It uses linen and paper materials and soft
-shadow maps. Everything is scrubbed by GSAP ScrollTrigger, so it is reversible and
-synchronised with the scroll. Pinned distance is 140% of the viewport on desktop;
-below `lg` only the menu stage is pinned (110%). Visitors who prefer reduced motion
-keep the static Scene 01 frame, and the 3D code (three.js) is never downloaded for
-them. For everyone else it loads after the page has finished loading.
+Why pre-rendered: the model needs physically based light (soft area-light shadows,
+bounce light, cloth sheen, contact shadow on the table), and a browser can't compute
+that in real time on every device. The frames carry transparent backgrounds and the
+menu's shadow on the table, and they are composited over the CSS studio backdrop.
 
-Textures live in `public/scene-01/book/`. The cover and the two food photographs
-come from the approved mockup. The typography on both interior pages (dish names,
-descriptions, prices) is set in Inter and Cormorant Garamond.
+Delivery: two WebP sets in `public/scene-01/opening/` (`hi` ≈ 6.5 MB for desktop and
+high-DPI screens, `lo` ≈ 2.4 MB for phones). They stream after the page has loaded,
+first frame first and then progressively finer passes. Visitors who prefer reduced
+motion keep the static Scene 01 frame and download none of it.
+
+### Re-rendering
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install bpy==5.2.3
+.venv/bin/python tools/menu-render/render_menu.py --out /tmp/frames --scale 1.15 --samples 40
+python3 tools/menu-render/encode_frames.py /tmp/frames   # needs Pillow
+```
+
+`render_menu.py` builds the whole scene in code: bevelled cloth boards, the page block
+with layered sheet edges, the cloth spine and joint, the inserts, the materials,
+the lights and the shadow-catching table. Motion and framing are defined in `pose()`.
+At 4 CPU cores a full render takes about 45 minutes. Textures live in
+`tools/menu-render/textures/`. The cover and the two food photographs come from the
+approved mockup, and the page typography is set in Inter and Cormorant Garamond.

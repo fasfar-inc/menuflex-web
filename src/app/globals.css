@@ -93,9 +93,3 @@ body {
   filter: drop-shadow(-6px 10px 8px rgba(70, 52, 34, 0.16))
     drop-shadow(-22px 34px 36px rgba(70, 52, 34, 0.14));
 }
-
-/* The 3D menu keeps the same wall shadow as the photograph. */
-.menu-depth-3d {
-  filter: drop-shadow(-6px 10px 8px rgba(70, 52, 34, 0.14))
-    drop-shadow(-22px 34px 36px rgba(70, 52, 34, 0.12));
-}
