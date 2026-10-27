@@ -162,3 +162,36 @@ body {
     --u: min(calc((100vw - 16px) / 1491), calc(max(100svh, 800px) / 1055), 1.4px);
   }
 }
+
+/* Interactive menu (/m/…): a category's deck fades across when switching. */
+@keyframes deck-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.deck-in {
+  animation: deck-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.deck-out {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.985);
+  transition:
+    opacity 180ms ease-in,
+    transform 180ms ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-in {
+    animation: none;
+  }
+  .deck-out {
+    transition: none;
+  }
+}

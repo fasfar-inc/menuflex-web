@@ -49,6 +49,7 @@ dead end:
 | `/` | Home, English |
 | `/tr/` | Home, Turkish |
 | `/demo/liman/` | The example digital menu the demo QR code opens |
+| `/m/<slug>/` | A restaurant's interactive menu, e.g. `/m/liman/` (demo) |
 
 Both languages share one set of components. All copy lives in
 `src/i18n/dictionaries.ts`, and each language has its own root layout
@@ -81,6 +82,34 @@ Both languages share one set of components. All copy lives in
 5. **Contact.** One panel listing the configured channels (WhatsApp, phone,
    email), plus a short form. There is no server: the form opens the message
    in WhatsApp or the visitor's mail app, addressed to the configured details.
+
+## Interactive menus (`/m/<slug>/`)
+
+A mobile-first menu for each restaurant (`src/components/menu-stack/`):
+
+- **Layout:** the restaurant header and a sticky category bar sit above a deck
+  of dish cards. The front card shows the photo, name, description, price and
+  up to three highlights. The dishes before it wait above and the ones after it
+  below, smaller, dimmer and slightly blurred, each showing its name strip.
+- **Changing dishes:** swipe or scroll up for the next dish, down for the
+  previous one. The cards move, scale and blur continuously as you drag. One
+  wheel notch or trackpad gesture moves one dish. The keyboard works too:
+  arrows, Page Up/Down, Space, Home and End move between dishes, and
+  Left/Right in the category bar change category. Tapping a card that peeks
+  out brings it forward.
+- **Between categories:** moving past the last dish goes on to the next
+  category. Choosing a category fades its deck in at the first dish.
+- **Other controls:** the menu button opens every dish at a glance, and the
+  language switch changes between EN and TR (remembered; `?lang=tr` works).
+- **Behaviour:** the page fits the screen and never scrolls, so nothing locks.
+  It respects iPhone safe areas. With reduced motion the cards simply
+  cross-fade.
+
+Add a restaurant with one file in `src/content/menus/` (see `types.ts` and
+`liman.ts`), registered in `src/content/menus/index.ts`. Photos go in
+`public/m/<slug>/`; a dish without one gets a typographic card with its
+category emblem. Entries marked `demo: true` are kept out of search engines.
+LIMAN at `/m/liman/` is fictional and is never listed in Our Work.
 
 ## The QR code
 
