@@ -86,3 +86,10 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Layered drop shadow for the floating menu: light comes from the upper
+   right, so the shadow falls down and to the left onto the wall. */
+.menu-depth {
+  filter: drop-shadow(-6px 10px 8px rgba(70, 52, 34, 0.16))
+    drop-shadow(-22px 34px 36px rgba(70, 52, 34, 0.14));
+}

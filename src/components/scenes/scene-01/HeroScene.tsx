@@ -5,7 +5,7 @@ import { ArrowIcon, Button } from "@/components/ui/Button";
 import { heroCopy } from "@/content/site";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { HeadlineUnderline } from "./HeadlineUnderline";
-import { HeroMenu } from "./HeroMenu";
+import { MenuStage } from "./MenuStage";
 import { SceneProgress } from "./SceneProgress";
 
 /**
@@ -41,14 +41,14 @@ export function HeroScene() {
       aria-labelledby="hero-title"
       className="studio-backdrop relative isolate flex flex-col overflow-hidden lg:block lg:h-[100svh] lg:min-h-[680px]"
     >
-      {/* Menu render — sits on the right half and bleeds off the edge on desktop */}
-      <div className="pointer-events-none relative z-0 mx-auto mt-2 w-[118%] max-w-none -translate-x-[4%] sm:w-[96%] sm:translate-x-[4%] lg:absolute lg:top-1/2 lg:right-0 lg:mt-0 lg:w-[min(58vw,108svh)] lg:translate-x-0 lg:-translate-y-[47%] order-2">
-        <HeroMenu />
+      {/* Menu stage — sits on the right half and bleeds off the edge on desktop */}
+      <div className="pointer-events-none relative z-0 mx-auto mt-2 w-[118%] max-w-none -translate-x-[4%] sm:w-[96%] sm:translate-x-[4%] lg:absolute lg:top-1/2 lg:right-0 lg:mt-0 lg:w-[min(58vw,calc(128svh-230px))] lg:translate-x-0 lg:-translate-y-[47%] order-2">
+        <MenuStage />
       </div>
 
       <div className="relative z-10 order-1 mx-auto flex h-full w-full max-w-[1680px] flex-col px-5 pt-[120px] sm:px-8 lg:justify-center lg:px-[10%] lg:pt-[40px]">
         <div className="max-w-[560px] lg:max-w-[40vw]">
-          <p data-reveal className="mb-8 text-[11px] font-medium tracking-[0.42em] text-ink-soft uppercase sm:text-[12px] lg:mb-[2.6vw]">
+          <p data-reveal className="mb-8 text-[11px] font-medium tracking-[0.3em] text-ink-soft uppercase sm:text-[12px] sm:tracking-[0.42em] lg:mb-[2.6vw]">
             {heroCopy.eyebrow}
           </p>
 
@@ -60,11 +60,11 @@ export function HeroScene() {
             <span data-reveal className="block">{line2}</span>
             <span data-reveal className="relative inline-block">
               {line3}
-              <HeadlineUnderline className="absolute -bottom-[0.06em] left-[0.02em] h-[0.18em] w-[86%]" />
+              <HeadlineUnderline className="absolute top-[calc(100%+0.015em)] left-[0.02em] h-[0.16em] w-[86%]" />
             </span>
           </h1>
 
-          <p data-reveal className="mt-[clamp(1.75rem,2.6vw,2.75rem)] text-[clamp(1.15rem,1.45vw,1.5rem)] leading-[1.32] font-light tracking-[-0.01em] text-ink-soft">
+          <p data-reveal className="mt-[clamp(2.25rem,3.2vw,3.25rem)] text-[clamp(1.15rem,1.45vw,1.5rem)] leading-[1.32] font-light tracking-[-0.01em] text-ink-soft">
             {heroCopy.supporting[0]}
             <br />
             {heroCopy.supporting[1]}
@@ -83,12 +83,12 @@ export function HeroScene() {
       </div>
 
       {/* Footer rail: scroll hint + chapter indicator */}
-      <div className="relative z-10 order-3 mx-auto flex w-full max-w-[1680px] items-end justify-between gap-6 px-5 pt-6 pb-8 sm:px-8 lg:absolute lg:inset-x-0 lg:bottom-0 lg:max-w-none lg:px-[10%] lg:pb-[44px] 2xl:pr-[56px]">
+      <div className="relative z-10 order-3 mx-auto flex w-full max-w-[1680px] flex-col items-start gap-7 md:flex-row md:items-end md:justify-between md:gap-6 px-5 pt-6 pb-8 sm:px-8 lg:absolute lg:inset-x-0 lg:bottom-0 lg:px-[10%] lg:pb-[44px] 2xl:pr-[56px]">
         <div data-reveal className="flex items-center gap-5 text-[12px] text-ink-soft">
           <span aria-hidden="true" className="h-10 w-px bg-ink/25" />
           {heroCopy.scrollHint}
         </div>
-        <div data-reveal className="hidden md:block">
+        <div data-reveal className="w-full md:w-auto">
           <SceneProgress active={0} />
         </div>
       </div>
