@@ -43,8 +43,9 @@ const plateSize = (a: number) => {
 };
 
 /**
- * A category's dishes as round plates around a dark wheel at the left edge.
- * The selected plate sits at the wheel's right, largest; the others follow
+ * A category's dishes as round plates on an unseen wheel at the left edge,
+ * straight on the menu's background. The selected plate sits at the wheel's
+ * right, largest, tied to the category tag; the others follow
  * the curve above and below. Choosing a dish turns the wheel so the plates
  * travel along the circle. One swipe, one wheel gesture, one key press or a
  * tap on a plate moves to exactly one dish; `go` holds the lock that keeps
@@ -209,7 +210,6 @@ export function DishWheel({
   // the wheel sits as far right as the plate allows, leaving room for the category tag
   const cx = Math.max(-0.08 * r, size.w - 8 - reach * r);
   const cy = wheelH / 2;
-  const discR = 0.9 * r;
   const active = dishes[index];
 
   return (
@@ -225,45 +225,8 @@ export function DishWheel({
       onPointerCancel={onPointerCancel}
     >
       {size.w > 0 && (
-        // the wheel fades out at its foot, onto whatever is behind the menu
+        // the plates fade out at the wheel's foot, onto whatever is behind the menu
         <div className="absolute inset-x-0 top-0 overflow-hidden [mask-image:linear-gradient(to_bottom,#000_calc(100%-40px),transparent)]" style={{ height: wheelH }}>
-          {/* the wheel: a brass tray, a little see-through */}
-          <div
-            aria-hidden="true"
-            className="absolute rounded-full bg-[radial-gradient(circle_at_75%_50%,rgba(91,68,41,0.9)_0%,rgba(62,47,30,0.86)_42%,rgba(39,29,19,0.8)_100%)] backdrop-blur-[2px]"
-            style={{
-              width: discR * 2,
-              height: discR * 2,
-              left: cx - discR,
-              top: cy - discR,
-              boxShadow: "inset 0 0 0 2px rgba(236,196,132,0.7), inset 0 0 90px rgba(0,0,0,0.35), 0 0 80px rgba(214,150,70,0.22)",
-            }}
-          />
-          <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" fill="none">
-            {/* the rim's marks turn with the plates: one per dish, three finer ones between */}
-            {Array.from({ length: n * 4 }, (_, k) => {
-              const major = k % 4 === 0;
-              const d = loop(k / 4 - pos, n);
-              const t = (d * STEP_DEG * Math.PI) / 180;
-              const on = major && Math.abs(d) < 0.5;
-              const inner = discR * (major ? 0.86 : k % 2 === 0 ? 0.9 : 0.925);
-              const outer = discR * 0.965;
-              return (
-                <line
-                  key={k}
-                  x1={cx + inner * Math.cos(t)}
-                  y1={cy + inner * Math.sin(t)}
-                  x2={cx + outer * Math.cos(t)}
-                  y2={cy + outer * Math.sin(t)}
-                  stroke={on ? "rgba(246,217,165,0.95)" : `rgba(236,196,132,${major ? 0.6 : 0.4})`}
-                  strokeWidth={major ? 1.6 : 1}
-                  strokeLinecap="round"
-                  style={on ? { filter: "drop-shadow(0 0 4px rgba(240,196,125,0.9))" } : undefined}
-                />
-              );
-            })}
-          </svg>
-
           {/* the plates around it */}
           {dishes.map((dish, i) => {
             const d = loop(i - pos, n);

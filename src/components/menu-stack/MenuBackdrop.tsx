@@ -78,7 +78,6 @@ export function MenuBackdrop() {
       {/* candlelight */}
       <span className="menu-glow absolute -top-20 -right-24 h-72 w-72 rounded-full bg-[#e0a85a]/[0.16] blur-[70px]" />
       <span className="menu-glow absolute top-[42%] -right-16 h-60 w-48 rounded-full bg-[#d18a3c]/[0.12] blur-[60px] [animation-delay:-4s]" />
-      <span className="absolute top-[30%] -left-28 h-80 w-72 rounded-full bg-[#b9773a]/[0.14] blur-[80px]" />
       <span className="absolute -bottom-24 left-1/2 h-56 w-[120%] -translate-x-1/2 rounded-full bg-[#d9a55a]/[0.08] blur-[90px]" />
       {/* bokeh, like candles out of focus across the room */}
       <span className="menu-glow absolute top-[9%] right-[8%] h-10 w-10 rounded-full bg-[#f2c27a]/25 blur-[6px] [animation-delay:-2s]" />

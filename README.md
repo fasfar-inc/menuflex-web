@@ -90,7 +90,8 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
 - **Layout:** the restaurant header (menu index, logo, TR | EN) and a row of
   category pills stay on screen.
 - **The dish wheel:** choosing a category shows its dishes as round plates
-  around a bronze wheel at the left edge, with the category name on the wheel.
+  along the curve of an unseen wheel at the left edge, straight on the
+  background, with the category name on a tag tied to the selected plate.
   The selected plate sits at the wheel's right, largest, with a gold ring; the
   other dishes follow the curve above and below. Its name, price and
   description sit under the wheel. This is `DishWheel.tsx`.
