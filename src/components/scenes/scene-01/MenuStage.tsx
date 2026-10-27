@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { limanMenu } from "@/components/menu/limanMenu";
 import { MenuObject } from "@/components/menu/MenuObject";
 import { MenuSequence } from "@/components/menu/sequence/MenuSequence";
-import { CANVAS_VIEW, STAGE_VIEW as stage, openingFrames } from "@/components/menu/sequence/openingFrames";
-import { DIGITAL, PHONE_SCREEN, PhoneReveal } from "@/components/scenes/scene-02/PhoneReveal";
+import { CANVAS_VIEW, SPINE, STAGE_VIEW as stage, openingFrames } from "@/components/menu/sequence/openingFrames";
+import { DIGITAL, PhoneReveal } from "@/components/scenes/scene-02/PhoneReveal";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useSequence } from "./OpeningSequence";
 
@@ -16,38 +16,14 @@ const span = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 /** Dissolve window from the approved photograph to the rendered sequence. */
 const DISSOLVE = [0.012, 0.06] as const;
 const smoother = (t: number) => t * t * t * (t * (6 * t - 15) + 10);
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** Scroll progress -> frame index (0–1 across all frames). Frame 0 is held through the dissolve. */
 function sequenceTime(p: number, q: number) {
-  const { count, opening } = openingFrames;
+  const { count, opening, turn, blank } = openingFrames;
   if (q <= 0) return (span(p, 0.03, 0.97) * (opening - 1)) / (count - 1);
-  return (opening - 1 + span(q, ...DIGITAL.frames) * (count - opening)) / (count - 1);
-}
-
-// the phone screen inside the canvas box (fractions), where the soft window closes
-const win = {
-  l: (PHONE_SCREEN.x - CANVAS_VIEW.x) / CANVAS_VIEW.width,
-  r: (PHONE_SCREEN.x + PHONE_SCREEN.width - CANVAS_VIEW.x) / CANVAS_VIEW.width,
-  t: (PHONE_SCREEN.y - CANVAS_VIEW.y) / CANVAS_VIEW.height,
-  b: (PHONE_SCREEN.y + PHONE_SCREEN.height - CANVAS_VIEW.y) / CANVAS_VIEW.height,
-};
-/** Left limit of the menu's area: never let paper reach the headline column. */
-const TEXT_EDGE = (690 - CANVAS_VIEW.x) / CANVAS_VIEW.width;
-
-/** Soft window that closes around the phone screen as the camera moves in. */
-function pageMask(q: number) {
-  const w = smoother(span(q, 0.08, 0.6));
-  const f = lerp(0.07, 0.012, w); // feather
-  const l = lerp(TEXT_EDGE, win.l, w);
-  const r = lerp(1.02, win.r, w);
-  const t = lerp(-0.02, win.t, w);
-  const b = lerp(1.02, win.b, w);
-  const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
-  return (
-    `linear-gradient(to right, transparent ${pct(l)}, #000 ${pct(l + f)}, #000 ${pct(r - f)}, transparent ${pct(r)}),` +
-    `linear-gradient(to bottom, transparent ${pct(t)}, #000 ${pct(t + f)}, #000 ${pct(b - f)}, transparent ${pct(b)})`
-  );
+  // once the page's print lives in HTML, the book underneath shows a blank right-hand page
+  if (q >= DIGITAL.blank) return blank / (count - 1);
+  return (opening - 1 + span(q, ...DIGITAL.frames) * turn) / (count - 1);
 }
 
 // canvas box relative to the stage box
@@ -57,6 +33,8 @@ const canvasBox = {
   width: `${(CANVAS_VIEW.width / stage.width) * 100}%`,
   height: `${(CANVAS_VIEW.height / stage.height) * 100}%`,
 };
+// the book recedes around its spine while the page lifts off it
+const spineOrigin = `${((SPINE.x - CANVAS_VIEW.x) / CANVAS_VIEW.width) * 100}% ${((SPINE.y - CANVAS_VIEW.y) / CANVAS_VIEW.height) * 100}%`;
 
 /**
  * Scene 01 stage. Layers, back to front:
@@ -110,13 +88,10 @@ export function MenuStage() {
       if (photoRef.current) photoRef.current.style.opacity = String(1 - mix);
       const c = canvasRef.current;
       if (c) {
-        c.style.opacity = String(mix * (1 - span(q, ...DIGITAL.render)));
-        const mask = q > 0 ? pageMask(q) : "none";
-        c.style.maskImage = mask;
-        c.style.setProperty("-webkit-mask-image", mask);
-        // the two gradients must intersect into a soft window, not add up
-        c.style.maskComposite = "intersect";
-        c.style.setProperty("-webkit-mask-composite", "source-in");
+        // the book falls back and fades while its page comes forward as the phone screen
+        const away = smoother(span(q, ...DIGITAL.book));
+        c.style.opacity = String(mix * (1 - away));
+        c.style.transform = away > 0 ? `scale(${1 - 0.05 * away})` : "";
       }
       // the rendered frames carry their own shadow on the table
       if (shadowFade.current) shadowFade.current.style.opacity = String(1 - mix);
@@ -231,7 +206,7 @@ export function MenuStage() {
               <MenuObject />
             </div>
             {loadFrames && (
-              <div ref={canvasRef} data-menu-3d className="absolute" style={{ ...canvasBox, opacity: 0 }}>
+              <div ref={canvasRef} data-menu-3d className="absolute" style={{ ...canvasBox, opacity: 0, transformOrigin: spineOrigin }}>
                 <MenuSequence stores={stores} frameAt={frameAt} onReady={onReady} />
               </div>
             )}
@@ -239,7 +214,7 @@ export function MenuStage() {
         </div>
       </div>
 
-      {/* chapter 2: the printed MAINS column becomes LIMAN's digital menu */}
+      {/* chapter 2: the right-hand page lifts off the book and becomes LIMAN's digital menu */}
       <PhoneReveal />
     </div>
   );

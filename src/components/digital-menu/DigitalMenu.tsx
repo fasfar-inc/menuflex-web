@@ -15,24 +15,29 @@ const MAINS_Y = 159;
 const PRINT_Y = 8;
 
 export type DigitalMenuHandle = {
-  /** 0 = printed page (paper colours, no chrome), 1 = finished dark digital menu. */
+  /** Colours and chrome: 0 = printed page (paper colours, no chrome), 1 = finished dark digital menu. */
   setMorph: (m: number) => void;
+  /** Layout: 0 = Mains where it sits on the printed page, 1 = Mains under the digital chrome. */
+  setLayout: (l: number) => void;
   setInteractive: (on: boolean) => void;
 };
 
-type Rgb = [number, number, number];
-const mix = (a: Rgb, b: Rgb, t: number) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(" ")})`;
+export type Rgb = [number, number, number];
+export const mix = (a: Rgb, b: Rgb, t: number) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(" ")})`;
 const mixA = (a: Rgb, aa: number, b: Rgb, ba: number, t: number) =>
   `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(" ")} / ${aa + (ba - aa) * t})`;
 
 // paper values match the printed page as rendered; dark values are the finished menu
 const THEME = {
-  bg: [[208, 194, 178], [12, 11, 10]] as [Rgb, Rgb],
+  bg: [[211, 197, 182], [12, 11, 10]] as [Rgb, Rgb],
   ink: [[40, 34, 28], [242, 235, 224]] as [Rgb, Rgb],
   muted: [[104, 96, 88], [156, 149, 140]] as [Rgb, Rgb],
   head: [[48, 42, 36], [214, 194, 155]] as [Rgb, Rgb],
   price: [[40, 34, 28], [227, 197, 143]] as [Rgb, Rgb],
 };
+
+/** Surface colour: printed paper, then the finished menu's black. */
+export const MENU_BG = THEME.bg;
 
 /**
  * LIMAN's digital menu: real, scrollable HTML at phone size. Its "Mains"
@@ -76,15 +81,12 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
       setMorph(m) {
         const r = root.current;
         if (!r) return;
-        // until the visitor can use it, the menu stays anchored on the printed MAINS column
-        if (r.inert) home();
         r.style.setProperty("--menu-bg", mix(...THEME.bg, m));
         r.style.setProperty("--menu-ink", mix(...THEME.ink, m));
         r.style.setProperty("--menu-muted", mix(...THEME.muted, m));
         r.style.setProperty("--menu-head", mix(...THEME.head, m));
         r.style.setProperty("--menu-price", mix(...THEME.price, m));
         r.style.setProperty("--menu-rule", mixA(THEME.muted[0], 0.55, THEME.ink[1], 0.14, m));
-        if (content.current) content.current.style.transform = `translateY(${-(MAINS_Y - PRINT_Y) * (1 - m)}px)`;
         if (chrome.current) {
           const c = Math.min(1, Math.max(0, (m - 0.35) / 0.65));
           chrome.current.style.opacity = String(c);
@@ -92,6 +94,11 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
         }
         // everything that is not on the printed column appears with the digital chrome
         r.style.setProperty("--menu-extra", String(Math.min(1, Math.max(0, (m - 0.45) / 0.55))));
+      },
+      setLayout(l) {
+        // until the visitor can use it, the menu stays anchored on the printed MAINS column
+        if (root.current?.inert) home();
+        if (content.current) content.current.style.transform = `translateY(${-(MAINS_Y - PRINT_Y) * (1 - l)}px)`;
       },
       setInteractive(on) {
         setInteractiveState(on);
@@ -140,7 +147,8 @@ export const DigitalMenu = forwardRef<DigitalMenuHandle>(function DigitalMenu(_,
         {
           width: SCREEN.width,
           height: SCREEN.height,
-          background: "var(--menu-bg)",
+          // a host can paint the surface itself (the lifted paper page) by setting --menu-surface
+          background: "var(--menu-surface, var(--menu-bg))",
           color: "var(--menu-ink)",
           "--menu-extra": 0,
         } as React.CSSProperties

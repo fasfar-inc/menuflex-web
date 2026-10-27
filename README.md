@@ -99,21 +99,27 @@ then progressively finer passes.
 ## Step 3: from paper to digital
 
 The same pin continues after the opening (desktop: 140% of the viewport for the opening,
-then 180% for this chapter). Progress is a second value from `OpeningSequence`, and the
-timings live in `DIGITAL` in `scenes/scene-02/PhoneReveal.tsx`.
+then 200% for this chapter). Progress is a second value from `OpeningSequence`, and the
+timings live in `DIGITAL` in `scenes/scene-02/PhoneReveal.tsx`. The idea: the printed
+right-hand page *is* the phone screen. It never gets cropped or swapped for another object.
 
-1. **Camera move** (rendered, frames 96–167). The open menu turns square to the viewer
-   while the camera moves in, until the printed MAINS column fills the phone screen
-   (`PHONE_SCREEN` in the mockup frame). A soft mask closes around that area, so the rest
-   of the paper fades away and never reaches the headline column.
-2. **Handover.** The digital menu fades in exactly over the printed column. Its "paper"
-   state uses the paper colours, and its Mains section is laid out like the print, with
-   the same photographs, dish rows and rule in the same positions.
-3. **Paper becomes screen.** Colours move from paper to deep black, the status bar,
-   LIMAN brand row and sticky categories fade in, the content settles under them, the
-   screen corners round off, and the phone frame forms around it. On phones the device
-   then grows to a comfortable size in the viewport.
-4. **Interactive.** At the end of the pin the menu takes pointer input: the category tabs
+1. **The menu faces the viewer** (rendered, frames 96–143). The open menu turns square to
+   the camera with the whole spread in view.
+2. **Handover.** An exact HTML copy of the right-hand page fades in over its render: the
+   rendered paper (`public/scene-01/opening/page-lift.webp`, cut from a render of the
+   same pose with the page left blank), the printed side columns
+   (`scenes/scene-02/PrintedPage.tsx`, set from the texture's typesetting) and the digital
+   menu, whose Mains section is laid out like the printed MAINS column. Under it, the book
+   switches to that blank-page frame (frame 144).
+3. **The page lifts off.** The page comes forward with a soft shadow while the book falls
+   back and fades. The columns beside MAINS dissolve down the page. The page reshapes into
+   the phone screen, and MAINS (the same photographs, dish names and prices) moves with it
+   into the digital layout. On phones the target is the finished, enlarged phone, so the
+   object grows steadily towards the centre of the screen.
+4. **Paper becomes screen.** The paper turns deep black, the ink turns light, the status
+   bar, LIMAN brand row and sticky categories fade in, the corners round off, and the phone
+   frame forms around the screen.
+5. **Interactive.** At the end of the pin the menu takes pointer input: the category tabs
    scroll to their section, and the active tab follows the scroll. The menu scrolls
    inside the phone with `overscroll-behavior: contain`, so it never drives the page.
 
@@ -134,8 +140,12 @@ licensed images in `public/digital-menu/` and add `photo` to the dish in
 python3 -m venv .venv && .venv/bin/pip install bpy==5.2.3
 .venv/bin/python tools/menu-render/render_menu.py --out /tmp/frames --scale 1.15 --samples 40
 .venv/bin/python tools/menu-render/render_menu.py --phase b --out /tmp/frames_b --scale 1.15 --samples 40
+.venv/bin/python tools/menu-render/render_menu.py --phase b --blank --frames 47 --out /tmp/frames_blank --scale 1.15 --samples 40
+.venv/bin/python tools/menu-render/render_menu.py --layout     # prints the lifted page's outline (PRINT_PAGE)
 python3 tools/menu-render/encode_frames.py /tmp/frames --shadow 0.5               # needs Pillow
 python3 tools/menu-render/encode_frames.py /tmp/frames_b --shadow 0.5 --offset 96
+python3 tools/menu-render/encode_frames.py /tmp/frames_blank --shadow 0.5 --offset 97
+python3 tools/menu-render/cut_page.py /tmp/frames_blank/0047.png                  # page-lift.webp
 ```
 
 The opening frames in the repo were rendered before a lens-shift fix and were encoded

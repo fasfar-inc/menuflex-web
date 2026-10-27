@@ -34,8 +34,8 @@ export function useOpeningProgress() {
  * only the menu stage is pinned.
  */
 const DISTANCE = {
-  wide: { opening: 1.4, digital: 1.8 },
-  compact: { opening: 1.1, digital: 1.6 },
+  wide: { opening: 1.4, digital: 2.0 },
+  compact: { opening: 1.1, digital: 1.8 },
   reduced: { digital: 1.0 },
 } as const;
 

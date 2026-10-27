@@ -425,32 +425,14 @@ def pose(u):
 
 
 # ----------------------------------------------------------------------------
-# phase B: from the open spread into the printed MAINS column (the future phone screen)
+# phase B: the open menu turns to face the viewer and comes slightly closer.
+# It ends square to the camera with the whole spread in view; from there the
+# website lifts the right-hand page off the book and turns it into the phone.
 # ----------------------------------------------------------------------------
 
-NB_FRAMES = 72
-# MAINS column of the right page, in page-texture coordinates (u from the spine, v from the top)
-COLUMN_U = (0.57, 0.94)
-COLUMN_V = (0.03, 0.90)
-PHONE_PX = (1190.0, 476.0)      # centre of the phone screen in the mockup frame
-PHONE_SCREEN_H = 660.0          # phone screen height in mockup-frame pixels
-
-
-def column_centre_model(bloom, lift):
-    """Centre of the MAINS column on the page surface, in rig coordinates."""
-    bw, bh = W - OV, H - 2 * OV
-    x = 0.5 * (COLUMN_U[0] + COLUMN_U[1]) * bw
-    y = (0.5 - 0.5 * (COLUMN_V[0] + COLUMN_V[1])) * bh
-    top = (TP - 0.003) + float(page_curve(np.array(x), bw)) * bloom + lift * math.exp(-x / 0.05)
-    z = -T + TB + 0.0015 + top
-    return np.array([x, y, z])
-
-
-def column_size():
-    return ((COLUMN_U[1] - COLUMN_U[0]) * (W - OV), (COLUMN_V[1] - COLUMN_V[0]) * (H - 2 * OV))
-
-
-D_PHONE = column_size()[1] * F / PHONE_SCREEN_H
+NB_FRAMES = 48
+SPINE_PX = (1176.0, 476.0)      # where the spine's centre ends up in the mockup frame
+PAGE_H = 388.0                  # page height on screen at the end, mockup-frame pixels
 
 
 def page_shape(theta):
@@ -459,33 +441,55 @@ def page_shape(theta):
     return bloom, lift
 
 
-def mat_to_quat(m):
-    return Matrix(m.tolist()).to_quaternion()
+def page_point(u, v, bloom, lift):
+    """A point on the right-hand page's printed surface (u from the spine, v from the top), rig space."""
+    bw, bh = W - OV, H - 2 * OV
+    x = u * bw
+    y = (0.5 - v) * bh
+    top = (TP - 0.003) + float(page_curve(np.array(x), bw)) * bloom + lift * math.exp(-x / 0.05)
+    return np.array([x, y, -T + TB + 0.0015 + top])
+
+
+def end_camera():
+    """Square-on camera that puts the spine at SPINE_PX with the page PAGE_H pixels tall."""
+    a = pose(1.0)
+    bloom, lift = page_shape(THETA_END)
+    spine = a["book_p"] + page_point(0.0, 0.5, bloom, lift)
+    mid = a["book_p"] + page_point(0.5, 0.5, bloom, lift)
+    d = (H - 2 * OV) * F / PAGE_H
+    cam_z = mid[2] + d
+    depth = cam_z - spine[2]
+    return np.array([spine[0] - (SPINE_PX[0] - CX) / F * depth, spine[1] + (SPINE_PX[1] - CY) / F * depth, cam_z])
 
 
 def pose_b(s):
-    """s in (0, 1]: the open menu turns to face the viewer while the camera moves in."""
+    """s in (0, 1]: the open menu turns square to the viewer while the camera eases in."""
     a = pose(1.0)
-    theta = THETA_END
-    bloom, lift = page_shape(theta)
-    turn = smoother(span(s, 0.0, 0.85))
+    bloom, lift = page_shape(THETA_END)
+    turn = smoother(span(s, 0.0, 1.0))
     book_q = a["book_q"].slerp(Quaternion(), turn)
     book_p = a["book_p"]
-    centre = book_p + np.array(book_q.to_matrix()) @ column_centre_model(bloom, lift)
-    # final camera: square to the page, the column filling the phone screen
-    off = np.array([(PHONE_PX[0] - CX) / F * D_PHONE, -(PHONE_PX[1] - CY) / F * D_PHONE, -D_PHONE])
-    end_q = Quaternion()
-    c_end = (book_p + column_centre_model(bloom, lift)) - off
+    spine = book_p + np.array(book_q.to_matrix()) @ page_point(0.0, 0.5, bloom, lift)
     move = smoother(span(s, 0.0, 1.0))
-    cam_p = a["cam_p"] + (c_end - a["cam_p"]) * move
-    # keep the column on a smooth screen path from where it sits on the open spread to the phone position
-    c0 = (centre_start := a["book_p"] + np.array(a["book_q"].to_matrix()) @ column_centre_model(bloom, lift)) - a["cam_p"]
-    c0 = c0 @ a["cam_r"]
+    cam_p = a["cam_p"] + (end_camera() - a["cam_p"]) * move
+    # the spine travels on a smooth screen path from where it sits on the open spread
+    c0 = (a["book_p"] + np.array(a["book_q"].to_matrix()) @ page_point(0.0, 0.5, bloom, lift) - a["cam_p"]) @ a["cam_r"]
     start_px = (CX + F * c0[0] / -c0[2], CY - F * c0[1] / -c0[2])
-    k = smoother(span(s, 0.0, 0.92))
-    px = (start_px[0] + (PHONE_PX[0] - start_px[0]) * k, start_px[1] + (PHONE_PX[1] - start_px[1]) * k)
-    cam_r = aim(cam_p, centre, px)
-    return dict(theta=theta, book_q=book_q, book_p=book_p, cam_p=cam_p, cam_r=cam_r, centre=centre)
+    px = (start_px[0] + (SPINE_PX[0] - start_px[0]) * move, start_px[1] + (SPINE_PX[1] - start_px[1]) * move)
+    cam_r = aim(cam_p, spine, px)
+    return dict(theta=THETA_END, book_q=book_q, book_p=book_p, cam_p=cam_p, cam_r=cam_r)
+
+
+def page_layout():
+    """Projected right-hand page at the end of phase B, for the website (mockup-frame pixels)."""
+    st = pose_b(1.0)
+    bloom, lift = page_shape(THETA_END)
+    R = np.array(st["book_q"].to_matrix())
+    out = {}
+    for name, (u, v) in dict(tl=(0, 0), tr=(1, 0), br=(1, 1), bl=(0, 1), mid=(0.5, 0.5)).items():
+        p = (st["book_p"] + R @ page_point(u, v, bloom, lift) - st["cam_p"]) @ st["cam_r"]
+        out[name] = (round(CX + F * p[0] / -p[2], 2), round(CY - F * p[1] / -p[2], 2))
+    return out
 
 
 def aim(cam_p, target, px):
@@ -508,7 +512,7 @@ def aim(cam_p, target, px):
 # scene
 # ----------------------------------------------------------------------------
 
-def build(scale, samples, exposure):
+def build(scale, samples, exposure, blank=False):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.engine = "CYCLES"
@@ -584,7 +588,7 @@ def build(scale, samples, exposure):
     linen = linen_material("Linen", gain=gain)
     linen_dark = linen_material("LinenEdge", tint=(0.92, 0.9, 0.87), gain=gain)
     cover_mat = printed_material("CoverPrint", "cover-front.webp", 0.88, cloth_bump=True, roughness=0.8)
-    mains = printed_material("Mains", "page-mains.webp", 1.08)
+    mains = printed_material("Mains", "page-mains-blank.webp" if blank else "page-mains.webp", 1.08)
     starters = printed_material("Starters", "page-starters.webp", 1.08)
     endpaper = linen_material("Turnin", tint=(0.97, 0.95, 0.92))
     edges = paper_edge_material("PageEdges", sheets=34, gain=1.0)
@@ -644,9 +648,14 @@ def main():
     ap.add_argument("--frames", default="all")
     ap.add_argument("--skip-existing", action="store_true")
     ap.add_argument("--phase", default="a", choices=["a", "b"])
+    ap.add_argument("--blank", action="store_true", help="right-hand page without print (the page the website lifts off)")
+    ap.add_argument("--layout", action="store_true", help="print the projected page at the end of phase B and exit")
     a, _ = ap.parse_known_args()
+    if a.layout:
+        print(json.dumps(page_layout()))
+        return
     os.makedirs(a.out, exist_ok=True)
-    objs = build(a.scale, a.samples, a.exposure)
+    objs = build(a.scale, a.samples, a.exposure, a.blank)
     count = N_FRAMES if a.phase == "a" else NB_FRAMES
     frames = range(count) if a.frames == "all" else [int(f) for f in a.frames.split(",")]
     for i in frames:
