@@ -136,8 +136,10 @@ export function DishStack({
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || document.querySelector('[aria-modal="true"]')) return;
-      if (t.closest("input, textarea, select, [role=dialog], [role=menu], [role=tablist]")) return;
+      if (t.closest("input, textarea, select, [role=dialog], [role=menu]")) return;
       const key = e.key;
+      // the category bar keeps Left/Right, Home/End and Space for itself; Up/Down still change dishes
+      if (t.closest("[role=tablist]") && !["ArrowDown", "ArrowUp", "PageDown", "PageUp"].includes(key)) return;
       if (key === "ArrowDown" || key === "PageDown" || (key === " " && !e.shiftKey)) step(1);
       else if (key === "ArrowUp" || key === "PageUp" || (key === " " && e.shiftKey)) step(-1);
       else if (key === "Home") onIndexChange(0);
