@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CategoryIcon as CategoryIconName, Dish, MenuLocale } from "@/content/menus/types";
 import { Price } from "./Price";
-import { CategoryIcon } from "./icons";
+import { CategoryIcon, ExpandIcon } from "./icons";
+import { PhotoViewer } from "./PhotoViewer";
 import { menuStrings } from "./strings";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -74,6 +75,8 @@ export function DishWheel({
   const [size, setSize] = useState({ w: 0, h: 0 });
   const indexRef = useRef(index);
   indexRef.current = index;
+  // the dish whose photograph is open, large
+  const [viewing, setViewing] = useState<Dish | null>(null);
 
   useLayoutEffect(() => {
     const el = stage.current;
@@ -250,11 +253,14 @@ export function DishWheel({
               <button
                 key={dish.id}
                 type="button"
-                tabIndex={-1}
-                aria-label={dish.name[locale]}
+                tabIndex={selected && dish.photo ? 0 : -1}
+                aria-label={selected && dish.photo ? `${s.viewPhoto}: ${dish.name[locale]}` : dish.name[locale]}
                 aria-current={selected ? "true" : undefined}
                 onClick={() => {
-                  if (!selected && !gesture.current?.used) go(i);
+                  if (gesture.current?.used) return;
+                  // the selected plate opens its photograph; any other plate turns the wheel to it
+                  if (!selected) go(i);
+                  else if (dish.photo && Math.abs(index - pos) < 0.02) setViewing(dish);
                 }}
                 className="absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
                 style={{
@@ -264,10 +270,21 @@ export function DishWheel({
                   top: y - dia / 2,
                   zIndex: 50 - Math.round(a * 10),
                   opacity: seam,
+                  pointerEvents: seam < 0.5 ? "none" : undefined,
                   transition: reduced ? `opacity ${REDUCED_MS}ms ease-out` : undefined,
                 }}
               >
                 <Plate dish={dish} icon={icon} selected={a < 0.5} priority={a < 1.5} />
+                {/* tells guests the selected photo opens */}
+                {dish.photo && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-[9%] bottom-[9%] flex h-8 w-8 items-center justify-center rounded-full bg-[rgb(12_10_8/0.72)] text-cream shadow-[0_0_0_1px_rgba(236,196,132,0.5)] backdrop-blur-sm transition-opacity duration-300"
+                    style={{ opacity: a < 0.3 ? 1 : 0 }}
+                  >
+                    <ExpandIcon className="h-4 w-4" />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -299,6 +316,7 @@ export function DishWheel({
           </div>
         </div>
       )}
+      {viewing && <PhotoViewer dish={viewing} locale={locale} reduced={reduced} onClose={() => setViewing(null)} />}
       <p aria-live="polite" className="sr-only">
         {active ? `${active.name[locale]}, ${active.price}. ${s.position(index + 1, n)}` : ""}
       </p>

@@ -9,6 +9,7 @@ export const menuStrings: Record<
     categories: string;
     overview: string;
     close: string;
+    viewPhoto: string;
     dishes: string;
     hint: string;
     position: (n: number, total: number) => string;
@@ -21,6 +22,7 @@ export const menuStrings: Record<
     categories: "Menu categories",
     overview: "Full menu",
     close: "Close",
+    viewPhoto: "View photo",
     dishes: "Dishes",
     hint: "Scroll for next dish",
     position: (n, t) => `Dish ${n} of ${t}`,
@@ -32,6 +34,7 @@ export const menuStrings: Record<
     categories: "Menü kategorileri",
     overview: "Tüm menü",
     close: "Kapat",
+    viewPhoto: "Fotoğrafı büyüt",
     dishes: "Yemekler",
     hint: "Sonraki yemek için kaydırın",
     position: (n, t) => `Yemek ${n} / ${t}`,
