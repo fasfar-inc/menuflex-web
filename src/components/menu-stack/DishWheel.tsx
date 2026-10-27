@@ -225,10 +225,10 @@ export function DishWheel({
       {size.w > 0 && (
         // the wheel fades out at its foot, onto whatever is behind the menu
         <div className="absolute inset-x-0 top-0 overflow-hidden [mask-image:linear-gradient(to_bottom,#000_calc(100%-40px),transparent)]" style={{ height: wheelH }}>
-          {/* the wheel */}
+          {/* the wheel: a brass tray, a little see-through, with engraved rings */}
           <div
             aria-hidden="true"
-            className="absolute rounded-full bg-[radial-gradient(circle_at_75%_50%,#5b4429_0%,#3e2f1e_42%,#271d13_100%)]"
+            className="absolute rounded-full bg-[radial-gradient(circle_at_75%_50%,rgba(91,68,41,0.9)_0%,rgba(62,47,30,0.86)_42%,rgba(39,29,19,0.8)_100%)] backdrop-blur-[2px]"
             style={{
               width: discR * 2,
               height: discR * 2,
@@ -237,6 +237,34 @@ export function DishWheel({
               boxShadow: "inset 0 0 0 2px rgba(236,196,132,0.7), inset 0 0 90px rgba(0,0,0,0.35), 0 0 80px rgba(214,150,70,0.22)",
             }}
           />
+          <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" fill="none">
+            <circle cx={cx} cy={cy} r={discR * 0.8} stroke="rgba(236,196,132,0.28)" strokeWidth="1" />
+            <circle cx={cx} cy={cy} r={discR * 0.765} stroke="rgba(236,196,132,0.16)" strokeWidth="0.75" strokeDasharray="1.5 5" />
+            <circle cx={cx} cy={cy} r={discR * 0.55} stroke="rgba(236,196,132,0.2)" strokeWidth="1" />
+            <circle cx={cx} cy={cy} r={discR * 0.32} stroke="rgba(236,196,132,0.14)" strokeWidth="1" />
+            {/* the rim's marks turn with the plates: one per dish, three finer ones between */}
+            {Array.from({ length: n * 4 }, (_, k) => {
+              const major = k % 4 === 0;
+              const d = loop(k / 4 - pos, n);
+              const t = (d * STEP_DEG * Math.PI) / 180;
+              const on = major && Math.abs(d) < 0.5;
+              const inner = discR * (major ? 0.86 : k % 2 === 0 ? 0.9 : 0.925);
+              const outer = discR * 0.965;
+              return (
+                <line
+                  key={k}
+                  x1={cx + inner * Math.cos(t)}
+                  y1={cy + inner * Math.sin(t)}
+                  x2={cx + outer * Math.cos(t)}
+                  y2={cy + outer * Math.sin(t)}
+                  stroke={on ? "rgba(246,217,165,0.95)" : `rgba(236,196,132,${major ? 0.6 : 0.4})`}
+                  strokeWidth={major ? 1.6 : 1}
+                  strokeLinecap="round"
+                  style={on ? { filter: "drop-shadow(0 0 4px rgba(240,196,125,0.9))" } : undefined}
+                />
+              );
+            })}
+          </svg>
 
           {/* the plates around it */}
           {dishes.map((dish, i) => {
@@ -290,6 +318,11 @@ export function DishWheel({
             );
           })}
 
+          {/* the category tag, tied to the selected plate by a fine gold line */}
+          <div aria-hidden="true" className="absolute z-[55] flex items-center" style={{ top: cy - 4, left: 0, width: cx + r * (1 - PLATE[0] / 2) + 2, height: 8 }}>
+            <span className="h-px flex-1 bg-[linear-gradient(90deg,rgba(236,196,132,0.2),rgba(240,196,125,0.9))]" />
+            <span className="h-2 w-2 rotate-45 bg-[#f0c47d] shadow-[0_0_8px_rgba(240,196,125,0.9)]" />
+          </div>
           {/* the category, on the wheel */}
           <div
             className="absolute left-0 z-[60] flex h-[50px] max-w-[44%] items-center rounded-r-full bg-cream pr-6 pl-4 text-[17px] font-medium whitespace-nowrap text-[#17120c] shadow-[0_8px_24px_-10px_rgba(0,0,0,0.8)]"
