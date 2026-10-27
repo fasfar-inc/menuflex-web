@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
 import { Price } from "./DishCard";
-import { DishStack } from "./DishStack";
+import { DishStack, MOTION_MS, REDUCED_MS } from "./DishStack";
 import { BurgerIcon, CategoryIcon, ChevronUpIcon, CloseIcon, WaveMark } from "./icons";
 import { menuStrings } from "./strings";
 
@@ -22,6 +22,11 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   const [reduced, setReduced] = useState(false);
   const [overview, setOverview] = useState(false);
   const switching = useRef<number | undefined>(undefined);
+  // one lock for every input: nothing new starts until the current change has played out
+  const lockedUntil = useRef(0);
+  const lock = (ms: number) => {
+    lockedUntil.current = performance.now() + ms;
+  };
   const tabs = useRef<HTMLDivElement>(null);
   const s = menuStrings[locale];
   const category = menu.categories[cat];
@@ -53,14 +58,27 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
     } catch {}
   };
 
+  /** Bring a dish of the current category to the front, unless a change is still playing. */
+  const goDish = useCallback(
+    (i: number) => {
+      if (performance.now() < lockedUntil.current) return false;
+      lock((reduced ? REDUCED_MS : MOTION_MS) + 30);
+      setDish(i);
+      return true;
+    },
+    [reduced],
+  );
+
   /** Move to another category (its first dish, or `at`), fading the deck across. */
   const selectCategory = useCallback(
     (next: number, at = 0) => {
       window.clearTimeout(switching.current);
       if (next === cat) {
-        setDish(at);
+        if (at !== dish) goDish(at);
         return;
       }
+      // the new deck fades out and in; dish changes wait until it has settled
+      lock(reduced ? REDUCED_MS : SWITCH_MS + 420);
       const go = () => {
         setCat(next);
         setDish(at);
@@ -70,7 +88,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       setLeaving(true);
       switching.current = window.setTimeout(go, SWITCH_MS);
     },
-    [cat, reduced],
+    [cat, dish, goDish, reduced],
   );
 
   // keep the active category in view in the bar
@@ -165,7 +183,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           <DishStack
             dishes={category.dishes}
             index={dish}
-            onIndexChange={setDish}
+            go={goDish}
             locale={locale}
             icon={category.icon}
             categoryLabel={category.label[locale]}
@@ -179,7 +197,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
         {category.dishes.length > 1 && (
           <button
             type="button"
-            onClick={() => setDish((dish + 1) % category.dishes.length)}
+            onClick={() => goDish((dish + 1) % category.dishes.length)}
             aria-label={s.hint}
             className="flex h-12 w-16 items-center justify-center text-cream transition-colors hover:text-gold-bright"
           >

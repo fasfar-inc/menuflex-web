@@ -92,11 +92,17 @@ A mobile-first menu for each restaurant (`src/components/menu-stack/`):
   the photograph, name, price and description. The other dishes of the category
   stack behind it, smaller, dimmer and blurred: those still to come below, the
   ones already seen as thin edges above.
-- **Changing dishes:** swipe or scroll up for the next dish, down for the
-  previous one. The cards move, scale and blur continuously as you drag. One
-  wheel notch or trackpad gesture moves one dish. The keyboard works too:
-  arrows, Page Up/Down, Space, Home and End; Left/Right on the category pills
-  change category. Tapping a card that peeks out brings it forward.
+- **Changing dishes:** one deliberate swipe moves exactly one dish: up for the
+  next, down for the previous. A swipe counts once it travels 56 px (or 9% of
+  the deck's height), clearly vertically; a quick flick of 28 px or more also
+  counts. The rest of that swipe is ignored. One wheel or trackpad gesture moves
+  one dish, however long its momentum lasts. The keyboard works too: arrows,
+  Page Up/Down, Space, Home and End; Left/Right on the category pills change
+  category. Tapping a card that peeks out brings it forward.
+- **Animation:** each change plays for 460 ms with a gentle ease-out. The front
+  card scales down, moves back and blurs while the next comes forward and
+  sharpens. One lock covers every input, so nothing new starts until a change
+  has played out (`MOTION_MS` in `DishStack.tsx`).
 - **The deck is a loop:** after the last dish the first comes round again.
   Choosing a category fades its deck in at the first dish.
 - **Other controls:** the menu button lists every dish, and the language switch

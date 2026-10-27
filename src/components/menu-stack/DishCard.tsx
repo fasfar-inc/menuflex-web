@@ -29,7 +29,7 @@ export function DishCard({
     <div className="relative h-full w-full overflow-hidden rounded-[26px] bg-[#0d0b09]">
       {/* the photograph, or a quiet emblem for dishes without one */}
       {/* behind the front card the photograph fills the whole card, so every peeking edge shows food */}
-      <div className="absolute inset-x-0 top-0" style={{ bottom: (CARD_TEXT - 34) * text }}>
+      <div className="absolute inset-x-0 top-0" style={{ bottom: (CARD_TEXT - 34) * text, transition: "bottom var(--deck-t)" }}>
         {dish.photo ? (
           <Image
             src={dish.photo.src}
@@ -50,11 +50,11 @@ export function DishCard({
         {/* the photograph settles into the card's black */}
         <div
           className="absolute inset-x-0 bottom-0 h-[38%] bg-[linear-gradient(to_bottom,rgba(13,11,9,0)_0%,rgba(13,11,9,0.85)_70%,#0d0b09_100%)]"
-          style={{ opacity: text }}
+          style={{ opacity: text, transition: "opacity var(--deck-t)" }}
         />
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-[22px] pb-[22px]" style={{ height: CARD_TEXT, opacity: text }}>
+      <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-[22px] pb-[22px]" style={{ height: CARD_TEXT, opacity: text, transition: "opacity var(--deck-t)" }}>
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="min-w-0 truncate font-serif text-[clamp(1.5rem,7vw,1.8rem)] leading-tight tracking-[-0.01em] text-cream">{dish.name[locale]}</h2>
           <Price value={dish.price} className="shrink-0 font-serif text-[clamp(1.4rem,6.4vw,1.7rem)] text-cream" />
