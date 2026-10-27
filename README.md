@@ -60,10 +60,13 @@ Both languages share one set of components. All copy lives in
    - **Animations:** load-only CSS animations. Text and menus fade in and the
      lines draw. Menus and buttons have hover states. Everything shows
      immediately with reduced motion.
-2. **Our Work.** `src/content/clients.ts`. Add only genuine restaurants that
-   have approved being listed. Each card opens that restaurant's live menu.
-   Entries marked `demo` (currently the LIMAN example) are always labelled
-   "Demo".
+2. **Our Work.** A minimal list of restaurant names, each linking to that
+   restaurant's live digital menu, from `src/content/clients.ts`. Add only
+   genuine restaurants that have approved being listed, and mark them
+   `published: true`. Until at least one is published, the section, its
+   "Our Work" nav link and the hero's "Explore Our Work" button are all
+   hidden. The LIMAN demonstration menu (`/demo/liman/`, opened by the demo
+   QR code) is never listed there.
 3. **How It Works.** Three steps.
 4. **Subscription.** One plan at the configured price.
 5. **Contact.** WhatsApp, phone and email cards, plus a short form. There is

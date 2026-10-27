@@ -13,7 +13,7 @@ const delay = (s: number) => ({ "--delay": `${s}s` }) as React.CSSProperties;
  * menus keep the reference proportions at any viewport. Phones and tablets get
  * their own stacked layout.
  */
-export function Hero({ t, workHref }: { t: Dictionary; workHref: string }) {
+export function Hero({ t, workHref }: { t: Dictionary; workHref: string | null }) {
   const h = t.hero;
   return (
     <section aria-labelledby="hero-title" className="stone-backdrop relative isolate overflow-hidden xl:min-h-[100svh]">
@@ -49,15 +49,17 @@ export function Hero({ t, workHref }: { t: Dictionary; workHref: string }) {
 
           <ContactButtons t={h} className="anim-rise mt-8 xl:mt-[calc(var(--u)*38)]" style={delay(0.5)} />
 
-          <div className="anim-rise mt-5 xl:mt-[calc(var(--u)*40)]" style={delay(0.6)}>
-            <Link
-              href={workHref}
-              className="group inline-flex h-[54px] items-center gap-6 rounded-full border border-gold/80 px-8 text-[16px] font-medium text-cream transition-[background-color,border-color] duration-300 hover:border-gold-bright hover:bg-gold/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold xl:h-[calc(var(--u)*55)] xl:gap-[calc(var(--u)*26)] xl:px-[calc(var(--u)*33)] xl:text-[calc(var(--u)*18)]"
-            >
-              {h.explore}
-              <ChevronIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-          </div>
+          {workHref && (
+            <div className="anim-rise mt-5 xl:mt-[calc(var(--u)*40)]" style={delay(0.6)}>
+              <Link
+                href={workHref}
+                className="group inline-flex h-[54px] items-center gap-6 rounded-full border border-gold/80 px-8 text-[16px] font-medium text-cream transition-[background-color,border-color] duration-300 hover:border-gold-bright hover:bg-gold/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold xl:h-[calc(var(--u)*55)] xl:gap-[calc(var(--u)*26)] xl:px-[calc(var(--u)*33)] xl:text-[calc(var(--u)*18)]"
+              >
+                {h.explore}
+                <ChevronIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* desktop: the full composition on the right of the canvas */}

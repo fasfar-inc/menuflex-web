@@ -40,10 +40,8 @@ const en = {
   },
   work: {
     eyebrow: "Our Work",
-    title: "Menus served with MenuFlex",
-    body: "Restaurants that present their menus with MenuFlex. Open a menu to see it exactly as guests do.",
-    demo: "Demo",
-    open: "Open digital menu",
+    title: "Restaurants serving their menus with MenuFlex",
+    open: "open digital menu",
   },
   how: {
     eyebrow: "How It Works",
@@ -132,10 +130,8 @@ const tr: Dictionary = {
   },
   work: {
     eyebrow: "Çalışmalarımız",
-    title: "MenuFlex ile sunulan menüler",
-    body: "Menülerini MenuFlex ile sunan restoranlar. Bir menüyü açın, misafirlerin gördüğü gibi görün.",
-    demo: "Demo",
-    open: "Dijital menüyü aç",
+    title: "Menülerini MenuFlex ile sunan restoranlar",
+    open: "dijital menüyü aç",
   },
   how: {
     eyebrow: "Nasıl Çalışır",

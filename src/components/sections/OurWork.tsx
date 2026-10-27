@@ -1,50 +1,36 @@
-import Image from "next/image";
-import Link from "next/link";
-import { ChevronIcon } from "@/components/ui/icons";
-import { clients } from "@/content/clients";
-import type { Dictionary, Locale } from "@/i18n/dictionaries";
+import { publishedClients } from "@/content/clients";
+import type { Dictionary } from "@/i18n/dictionaries";
 import { Section } from "./Section";
 
-/** Restaurants using MenuFlex; each card opens that restaurant's live menu. */
-export function OurWork({ t, locale }: { t: Dictionary["work"]; locale: Locale }) {
+const external = (url: string) => /^https?:\/\//.test(url);
+
+/** Published restaurants, names only; each name opens that restaurant's menu. Hidden while there are none. */
+export function OurWork({ t }: { t: Dictionary["work"] }) {
+  if (publishedClients.length === 0) return null;
   return (
-    <Section id="work" eyebrow={t.eyebrow} title={t.title} intro={t.body}>
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {clients.map((c) => {
-          const external = /^https?:\/\//.test(c.menuUrl);
-          return (
-            <li key={c.name}>
-              <Link
+    <Section id="work" eyebrow={t.eyebrow} title={t.title}>
+      <ul className="border-t border-cream/10">
+        {publishedClients.map((c) => (
+          <li key={c.name} className="border-b border-cream/10">
+            {c.menuUrl ? (
+              <a
                 href={c.menuUrl}
-                {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-cream/10 bg-night-900 transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-gold/50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+                {...(external(c.menuUrl) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                aria-label={`${c.name} — ${t.open}`}
+                className="group flex items-baseline justify-between gap-6 py-7 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold sm:py-9"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(70%_70%_at_50%_45%,#2b241d_0%,#15120f_100%)]">
-                  <Image
-                    src={c.image.src}
-                    alt={c.image.alt}
-                    fill
-                    sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
-                    className="object-contain p-6 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                  />
-                  {c.demo && (
-                    <span className="absolute top-4 left-4 rounded-full border border-gold/60 bg-night-950/80 px-3 py-1 text-[11px] font-semibold tracking-[0.2em] text-gold uppercase backdrop-blur-sm">
-                      {t.demo}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <h3 className="font-serif text-[24px] leading-tight text-cream">{c.name}</h3>
-                  <p className="mt-2 flex-1 text-[15px] leading-[1.6] text-cream-muted">{c.note[locale]}</p>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[15px] font-medium text-gold">
-                    {t.open}
-                    <ChevronIcon className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-                  </span>
-                </div>
-              </Link>
-            </li>
-          );
-        })}
+                <span className="font-serif text-[clamp(1.75rem,3.6vw,2.75rem)] leading-tight tracking-[-0.015em] text-cream transition-colors duration-300 group-hover:text-gold-bright">
+                  {c.name}
+                </span>
+                <span aria-hidden="true" className="text-[22px] text-gold/50 transition-[color,transform] duration-300 group-hover:translate-x-1 group-hover:text-gold">
+                  →
+                </span>
+              </a>
+            ) : (
+              <span className="block py-7 font-serif text-[clamp(1.75rem,3.6vw,2.75rem)] leading-tight tracking-[-0.015em] text-cream sm:py-9">{c.name}</span>
+            )}
+          </li>
+        ))}
       </ul>
     </Section>
   );

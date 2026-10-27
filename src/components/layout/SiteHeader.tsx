@@ -28,12 +28,12 @@ function LanguageSwitch({ locale, t }: { locale: Locale; t: Dictionary }) {
   );
 }
 
-export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
+export function SiteHeader({ locale, t, workHref }: { locale: Locale; t: Dictionary; workHref: string | null }) {
   const [open, setOpen] = useState(false);
   const home = homePath[locale];
   const links = [
     { label: t.nav.home, href: home, current: true },
-    { label: t.nav.work, href: `${home}#work` },
+    ...(workHref ? [{ label: t.nav.work, href: workHref }] : []),
     { label: t.nav.how, href: `${home}#how-it-works` },
     { label: t.nav.contact, href: `${home}#contact` },
   ];
