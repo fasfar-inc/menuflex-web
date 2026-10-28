@@ -23,7 +23,8 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   const [dish, setDish] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const [reduced, setReduced] = useState(false);
-  const [overview, setOverview] = useState(false);
+  // the full-menu list: closed, or open at a category
+  const [overview, setOverview] = useState<string | false>(false);
   const switching = useRef<number | undefined>(undefined);
   // one lock for every input: nothing new starts until the current change has played out
   const lockedUntil = useRef(0);
@@ -124,7 +125,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       <header className="relative z-20 grid grid-cols-[52px_1fr_52px] items-center px-3 pt-[max(env(safe-area-inset-top),6px)] min-[380px]:px-4">
         <button
           type="button"
-          onClick={() => setOverview(true)}
+          onClick={() => setOverview(category.id)}
           aria-label={s.overview}
           aria-haspopup="dialog"
           className="-ml-1 flex h-11 w-11 items-center justify-center text-cream transition-colors hover:text-gold-bright"
@@ -141,9 +142,9 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
               unoptimized
               className="h-7 w-auto max-w-[120px] object-contain"
             />
-          ) : (
+          ) : menu.mark === "wave" ? (
             <WaveMark className="h-[9px] w-[34px] text-[#d9a55a]" />
-          )}
+          ) : null}
           <h1
             className={`mt-0.5 font-display text-[1.45rem] leading-none font-semibold tracking-[0.04em] ${accent ? "" : "bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text text-transparent"}`}
             style={accent ? { color: accent } : undefined}
@@ -215,6 +216,8 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
               icon={category.icon}
               categoryLabel={category.label[locale]}
               reduced={reduced}
+              // dishes without a photo are read in the full menu
+              more={category.dishes.length > onWheel.length ? { label: s.seeAll(category.dishes.length), open: () => setOverview(category.id) } : undefined}
             />
           ) : (
             <DishList dishes={category.dishes} locale={locale} categoryLabel={category.label[locale]} />
@@ -225,6 +228,8 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       {overview && (
         <MenuOverview
           menu={menu}
+          focus={overview}
+          accent={accent}
           locale={locale}
           onClose={() => setOverview(false)}
           onPick={(ci, di) => {
@@ -242,11 +247,16 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
 /** Every dish at a glance; picking one brings it to the front of its category. */
 function MenuOverview({
   menu,
+  focus,
+  accent,
   locale,
   onClose,
   onPick,
 }: {
   menu: RestaurantMenu;
+  /** The category to open at. */
+  focus: string;
+  accent: string | null;
   locale: MenuLocale;
   onClose: () => void;
   onPick: (category: number, dish: number) => void;
@@ -255,22 +265,28 @@ function MenuOverview({
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     close.current?.focus();
+    document.getElementById(`overview-${focus}`)?.scrollIntoView({ block: "start" });
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, focus]);
 
   return (
     <div role="dialog" aria-modal="true" aria-label={s.overview} className="deck-in fixed inset-0 z-50 flex flex-col bg-[#0b0907]/97 backdrop-blur-md">
       <div className="flex items-center justify-between px-5 pt-[max(env(safe-area-inset-top),16px)] pb-3">
-        <p className="bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text font-display text-[28px] font-semibold text-transparent">{menu.name}</p>
+        <p
+          className={`font-display text-[28px] font-semibold ${accent ? "" : "bg-[linear-gradient(180deg,#f6dcab_0%,#d9a55a_100%)] bg-clip-text text-transparent"}`}
+          style={accent ? { color: accent } : undefined}
+        >
+          {menu.name}
+        </p>
         <button ref={close} type="button" onClick={onClose} aria-label={s.close} className="-mr-2 flex h-12 w-12 items-center justify-center text-cream">
           <CloseIcon className="h-7 w-7" />
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(env(safe-area-inset-bottom),24px)]">
         {menu.categories.map((c, ci) => (
-          <section key={c.id} className="mt-6">
+          <section key={c.id} id={`overview-${c.id}`} className="scroll-mt-2 pt-6">
             <h2 className="flex items-center gap-2.5 text-[12px] font-medium tracking-[0.3em] text-[#d9a55a] uppercase">
               <CategoryIcon name={c.icon} className="h-5 w-5" />
               {c.label[locale]}
@@ -278,10 +294,24 @@ function MenuOverview({
             <ul className="mt-2 border-t border-cream/10">
               {c.dishes.map((d, di) => (
                 <li key={d.id} className="border-b border-cream/10">
-                  <button type="button" onClick={() => onPick(ci, di)} className="flex min-h-[52px] w-full items-baseline justify-between gap-4 py-3 text-left">
-                    <span className="font-serif text-[19px] text-cream">{d.name[locale]}</span>
-                    <Price value={d.price} className="shrink-0 font-serif text-[17px] text-cream-soft" />
-                  </button>
+                  {d.photo ? (
+                    // dishes with a photo open on the wheel
+                    <button type="button" onClick={() => onPick(ci, di)} className="flex min-h-[52px] w-full items-baseline justify-between gap-4 py-3 text-left">
+                      <span className="font-serif text-[19px] text-cream">
+                        {d.name[locale]} <span aria-hidden="true" className="ml-1 text-[13px] text-[#d9a55a]">◉</span>
+                      </span>
+                      <Price value={d.price} className="shrink-0 font-serif text-[17px] text-cream-soft" />
+                    </button>
+                  ) : (
+                    // the others are read here
+                    <div className="py-3">
+                      <div className="flex items-baseline justify-between gap-4">
+                        <span className="font-serif text-[19px] text-cream">{d.name[locale]}</span>
+                        <Price value={d.price} className="shrink-0 font-serif text-[17px] text-cream-soft" />
+                      </div>
+                      {d.description[locale] && <p className="mt-1 text-[13.5px] leading-[1.45] font-light text-cream-muted">{d.description[locale]}</p>}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

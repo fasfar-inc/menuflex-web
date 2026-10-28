@@ -5,7 +5,7 @@
 export type MenuLocale = "en" | "tr";
 export type Localized = Record<MenuLocale, string>;
 
-export type CategoryIcon = "starters" | "fish" | "meat" | "desserts" | "drinks";
+export type CategoryIcon = "starters" | "fish" | "meat" | "desserts" | "drinks" | "pasta" | "chicken" | "salad" | "kids";
 
 export type Dish = {
   id: string;
@@ -35,7 +35,9 @@ export type RestaurantMenu = {
   locales: MenuLocale[];
   categories: MenuCategory[];
   note?: Localized;
-  /** The restaurant's own mark, shown in place of the default wave above its name. */
+  /** LIMAN's wave above the name; other restaurants show their logo, or nothing. */
+  mark?: "wave";
+  /** The restaurant's own mark, shown above its name. */
   logo?: { src: string; width: number; height: number };
   /** Accent (name, selected category) and page colour; the approved gold and dark when absent. */
   theme?: { accent: string; background: string };

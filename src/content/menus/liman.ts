@@ -13,6 +13,7 @@ export const liman: RestaurantMenu = {
   name: "LIMAN",
   subtitle: { en: "Kitchen & Bar", tr: "Kitchen & Bar" },
   demo: true,
+  mark: "wave",
   defaultLocale: "en",
   locales: ["tr", "en"],
   note: {

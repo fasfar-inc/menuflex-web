@@ -62,6 +62,7 @@ export function DishWheel({
   icon,
   categoryLabel,
   reduced,
+  more,
 }: {
   dishes: Dish[];
   index: number;
@@ -71,6 +72,8 @@ export function DishWheel({
   icon: CategoryIconName;
   categoryLabel: string;
   reduced: boolean;
+  /** A way to the category's other dishes, the ones without a photo. */
+  more?: { label: string; open: () => void };
 }) {
   const s = menuStrings[locale];
   const n = dishes.length;
@@ -316,9 +319,16 @@ export function DishWheel({
               <Price value={active.price} className="shrink-0 font-serif text-[clamp(20px,6.2vw,27px)] text-cream" />
             </div>
             <p className="mt-2 line-clamp-2 text-[15px] leading-[1.5] font-light text-cream-soft">{active.description[locale]}</p>
-            <p className="mt-2 text-[11px] tracking-[0.2em] text-cream-muted tabular-nums" aria-hidden="true">
-              {index + 1} / {n}
-            </p>
+            <div className="mt-2 flex items-center justify-between gap-4">
+              <p className="text-[11px] tracking-[0.2em] text-cream-muted tabular-nums" aria-hidden="true">
+                {index + 1} / {n}
+              </p>
+              {more && (
+                <button type="button" onClick={more.open} className="-my-2 py-2 text-[13px] font-medium text-[#d9a55a] underline-offset-4 hover:underline">
+                  {more.label} →
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

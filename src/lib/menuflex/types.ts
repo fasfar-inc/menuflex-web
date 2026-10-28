@@ -64,4 +64,4 @@ export const DEFAULT_ACCENT = "#f6d9a5";
 export const DEFAULT_BACKGROUND = "#0d0b09";
 
 /** Slugs the app already uses for its own menus. */
-export const RESERVED_SLUGS = ["liman"];
+export const RESERVED_SLUGS = ["liman", "sabor"];
