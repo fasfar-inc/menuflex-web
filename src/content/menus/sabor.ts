@@ -27,7 +27,7 @@ const tapas: MenuCategory = {
   label: { en: "Tapas", tr: "Başlangıçlar" },
   dishes: [
     dish("gambas-al-ajillo", "Gambas al Ajillo", "₺380", "Prawns sautéed in olive oil and garlic. 4 pieces.", "Sarımsakla sote edilmiş karidesler. 4 adet.", {
-      photo: photo("gambas-al-ajillo", 482, 308, "42% 50%"),
+      photo: photo("gambas-al-ajillo-v2", 506, 250, "40% 55%"),
     }),
     veg(dish("patatas-bravas", "Patatas Bravas", "₺335", "Deep-fried potatoes in a spicy sauce.", "Baharatlı ve acı soslu kızartılmış patates.")),
     veg(dish("champinones-al-ajillo", "Champiñones al Ajillo", "₺250", "Mushrooms in garlic sauce.", "Sarımsak soslu mantar.")),
@@ -55,7 +55,9 @@ const pasta: MenuCategory = {
     dish("linguine-sabor", "Linguine 'Sabor'", "₺995", "Linguine with pan-fried prawns, calamari and tomato sauce.", "Sote edilmiş karides, kalamar ve domates soslu linguine makarna.", {
       photo: photo("linguine-sabor", 478, 308),
     }),
-    dish("spaghetti-bolognese", "Spaghetti Bolognese", "₺990", "Traditional minced beef and tomato sauce.", "Klasik Bolonez soslu spagetti."),
+    dish("spaghetti-bolognese", "Spaghetti Bolognese", "₺990", "Traditional minced beef and tomato sauce.", "Klasik Bolonez soslu spagetti.", {
+      photo: photo("spaghetti-bolognese", 516, 250, "55% 55%"),
+    }),
     veg(dish("spaghetti-al-olio", "Spaghetti al Olio", "₺395", "With garlic, olive oil and chilli peppers.", "Sarımsak, zeytinyağı ve acı biberli spagetti.")),
     dish("spaghetti-marinara", "Spaghetti Marinara", "₺990", "Spaghetti with tomato sauce and seafood.", "Domates soslu ve deniz ürünleriyle spagetti."),
     veg(dish("penne-allarrabbiata", "Penne all'Arrabbiata", "₺495", "Penne with a spicy tomato sauce.", "Acılı domates sosu ile boru makarna.")),
@@ -82,7 +84,7 @@ const chicken: MenuCategory = {
   label: { en: "Chicken", tr: "Tavuk" },
   dishes: [
     dish("chicken-a-la-crema", "Chicken a la Crema", "₺710", "Grilled chicken breast in cream and mushroom sauce, with potatoes and vegetables.", "Kremalı ve mantar soslu ızgara tavuk göğsü, patates ve sebze ile.", {
-      photo: photo("chicken-a-la-crema", 472, 308, "50% 60%"),
+      photo: photo("chicken-a-la-crema-v2", 506, 250, "45% 55%"),
     }),
     dish("pollo-scaloppina", "Pollo Scaloppina", "₺790", "Chicken escalope with penne napolitana.", "Tavuk şnitsel ve domates soslu boru makarna."),
     dish("pollo-alla-griglia", "Pollo alla Griglia", "₺540", "Grilled chicken breast with potatoes and vegetables.", "Izgara tavuk göğsü, patates ve sebze ile."),
@@ -108,7 +110,9 @@ const noodles: MenuCategory = {
       dish("vegan-soba-noodles", "Vegan Soba Noodles", "₺580", "High-protein buckwheat soba with vegetables, spicy sriracha, sesame and avocado. Healthy option, 387.1 kcal.", "Sebzeli, susamlı ve acı sriracha soslu karabuğday erişte, avokado ile. Sağlıklı seçenek, 387,1 kcal."),
       VEGAN,
     ),
-    dish("chicken-soba-noodles", "Chicken Soba Noodles", "₺680", "High-protein buckwheat soba with chicken, vegetables, sriracha, sesame and avocado. Healthy option, 406.3 kcal.", "Sebzeli, tavuklu, susamlı ve sriracha soslu karabuğday erişte, avokado ile. Sağlıklı seçenek, 406,3 kcal."),
+    dish("chicken-soba-noodles", "Chicken Soba Noodles", "₺680", "High-protein buckwheat soba with chicken, vegetables, sriracha, sesame and avocado. Healthy option, 406.3 kcal.", "Sebzeli, tavuklu, susamlı ve sriracha soslu karabuğday erişte, avokado ile. Sağlıklı seçenek, 406,3 kcal.", {
+      photo: photo("chicken-soba-noodles", 506, 259),
+    }),
     dish("beef-soba-noodles", "Beef Soba Noodles", "₺1.100", "High-protein buckwheat soba with beef, vegetables, sriracha, sesame and avocado. Healthy option, 458.6 kcal.", "Sebzeli, biftekli, susamlı ve sriracha soslu karabuğday erişte, avokado ile. Sağlıklı seçenek, 458,6 kcal."),
   ],
 };
@@ -119,7 +123,7 @@ const meat: MenuCategory = {
   label: { en: "Meat", tr: "Et" },
   dishes: [
     dish("grilled-t-bone-steak", "Grilled T-Bone Steak", "₺1.990", "T-bone steak served with potatoes and vegetables.", "T-bone steak, patates ve sebze ile.", {
-      photo: photo("grilled-t-bone-steak", 467, 308, "45% 55%"),
+      photo: photo("grilled-t-bone-steak-v2", 506, 259, "42% 60%"),
     }),
     dish("bistecca-con-pomodori-secchi", "Bistecca con Pomodori Secchi", "₺2.050", "Sirloin with sun-dried tomatoes and cream, with potatoes and vegetables.", "İtalyan kuru domates ve kremalı biftek, patates ve sebze ile."),
     dish("filetto-al-pepe", "Filetto al Pepe", "₺2.200", "Fillet steak with cream and peppercorns, with potatoes and vegetables.", "Karabiber ve krema soslu bonfile, patates ve sebze ile."),
@@ -141,10 +145,12 @@ const paellaFish: MenuCategory = {
   dishes: [
     dish("paella", "Paella with Chicken and Seafood", "₺2.400", "Traditional Spanish rice with seafood and chicken, for two. Please allow 45 minutes.", "Geleneksel tavada pişen pirinçli, tavuklu ve deniz ürünlü İspanyol yemeği, 2 kişilik. Hazırlanması 45 dakika sürer.", {
       name: { en: "Paella with Chicken and Seafood", tr: "Tavuklu ve Deniz Ürünlü Paella" },
-      photo: photo("paella", 463, 308, "62% 58%"),
+      photo: photo("paella-v2", 516, 259, "50% 58%"),
     }),
     dish("portuguese-prawns-and-calamari", "Portuguese Prawns and Calamari", "₺770", "Traditional Portuguese skewers of grilled prawns and calamari, with potatoes and salad.", "Geleneksel Portekiz ızgara karides ve kalamar şiş, salata ve patates ile."),
-    dish("pangasius-fillet-fish", "Pangasius Fillet Fish", "₺570", "Freshwater fish fillet sautéed with onions and olives, with potatoes and vegetables.", "Soğan, zeytin ve şarapla sote edilmiş tatlısu balığı fileto, patates ve sebze ile."),
+    dish("pangasius-fillet-fish", "Pangasius Fillet Fish", "₺570", "Freshwater fish fillet sautéed with onions and olives, with potatoes and vegetables.", "Soğan, zeytin ve şarapla sote edilmiş tatlısu balığı fileto, patates ve sebze ile.", {
+      photo: photo("pangasius-fillet-fish", 516, 259, "45% 55%"),
+    }),
   ],
 };
 
@@ -156,7 +162,11 @@ const salads: MenuCategory = {
     veg(dish("mixed-salad", "Mixed Salad", "₺250", "Mixed greens with tomato.", "Yeşil salata, domates.")),
     veg(dish("parmiggiano", "Parmiggiano", "₺555", "Mixed greens, rocket, shaved parmesan and sun-dried tomatoes.", "Yeşil salata, roka, parmesan peyniri ve İtalyan kuru domates.")),
     veg(dish("feta-cheese-salad", "Feta Cheese Salad", "₺520", "Tossed salad with feta cheese and apple.", "Beyaz peynir, yeşillik ve elma.")),
-    veg(dish("beetroot-salad", "Beetroot Salad", "₺640", "Mixed greens topped with beetroot, white cheese and avocado.", "Yeşil salata, pancar, beyaz peynir ve avokado.")),
+    veg(
+      dish("beetroot-salad", "Beetroot Salad", "₺640", "Mixed greens topped with beetroot, white cheese and avocado.", "Yeşil salata, pancar, beyaz peynir ve avokado.", {
+        photo: photo("beetroot-salad", 506, 259),
+      }),
+    ),
     dish("beef-avocado-beetroot-salad", "Beef, Avocado and Beetroot Salad", "₺1.100", "Salad with steak, avocado and beetroot.", "Biftekli, avokadolu ve pancarlı salata."),
     dish("chicken-salad", "Chicken Salad", "₺435", "Grilled chicken strips on mixed greens.", "Izgara tavuk salatası."),
     dish("sabor-salad", "'Sabor' Salad", "₺650", "Tossed salad topped with mixed seafood.", "Karışık deniz ürünleri salatası."),
@@ -169,7 +179,9 @@ const kids: MenuCategory = {
   icon: "kids",
   label: { en: "Kids", tr: "Çocuk Menü" },
   dishes: [
-    dish("kids-grilled-chicken-chips", "Grilled Chicken and Chips", "₺370", "Grilled chicken with chips.", "Izgara tavuk ve kızartılmış patates."),
+    dish("kids-grilled-chicken-chips", "Grilled Chicken and Chips", "₺370", "Grilled chicken with chips.", "Izgara tavuk ve kızartılmış patates.", {
+      photo: photo("kids-grilled-chicken-chips", 506, 259, "55% 55%"),
+    }),
     dish("kids-chicken-breadcrumbs-chips", "Chicken in Breadcrumbs and Chips", "₺390", "Breaded chicken with chips.", "Tavuk şnitzel ve kızartılmış patates."),
     dish("kids-spaghetti-napolitana", "Spaghetti Napolitana", "₺310", "Spaghetti with tomato sauce.", "Domates soslu spagetti."),
     dish("kids-spaghetti-bolognese", "Spaghetti Bolognese", "₺475", "Spaghetti with Bolognese sauce.", "Bolonez soslu spagetti."),
@@ -178,8 +190,9 @@ const kids: MenuCategory = {
 
 /**
  * Sabor: Portuguese, Spanish and Italian cuisine. A demonstration built from
- * the restaurant's printed menu and its photography; not a client, so it is
- * kept out of search engines and Our Work.
+ * the restaurant's printed menu, with photographs from that menu and from a
+ * set supplied to MenuFlex; not a client, so it is kept out of search
+ * engines and Our Work.
  */
 export const sabor: RestaurantMenu = {
   slug: "sabor",
