@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useState } from "react";
 import type { Dish, MenuCategory, MenuLocale } from "@/content/menus/types";
 import { PhotoViewer } from "./PhotoViewer";
 import { Price } from "./Price";
@@ -9,57 +9,18 @@ import { CategoryIcon } from "./icons";
 
 /**
  * Categories side by side as independent panels. Each panel keeps its heading
- * and scrolls its own dishes (vertical overscroll contained, so neither the
- * page nor a neighbour moves); the row of panels scrolls sideways, one panel
- * per swipe, when there are more categories than fit, three to a screen.
- * Arrows at the edges do the same for a mouse.
+ * and scrolls its own dishes (overscroll contained, so neither the page nor a
+ * neighbour moves); the row of panels scrolls sideways when there are more
+ * categories than fit, three to a screen.
  */
 export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory[]; locale: MenuLocale; reduced: boolean; onScroll?: () => void }>(
   function MenuColumns({ categories, locale, reduced, onScroll }, ref) {
     const [viewing, setViewing] = useState<Dish | null>(null);
-    const row = useRef<HTMLDivElement>(null);
-    useImperativeHandle(ref, () => row.current!, []);
-    // which ways there are more panels to see
-    const [more, setMore] = useState({ left: false, right: false });
-    const sync = useCallback(() => {
-      const el = row.current;
-      if (!el) return;
-      const left = el.scrollLeft > 8;
-      const right = el.scrollLeft < el.scrollWidth - el.clientWidth - 8;
-      setMore((m) => (m.left === left && m.right === right ? m : { left, right }));
-    }, []);
-    useEffect(() => {
-      sync();
-      window.addEventListener("resize", sync);
-      return () => window.removeEventListener("resize", sync);
-    }, [sync]);
-    const page = (dir: 1 | -1) => {
-      const el = row.current;
-      const w = (el?.firstElementChild as HTMLElement | null)?.offsetWidth ?? 0;
-      el?.scrollBy({ left: dir * w, behavior: reduced ? "auto" : "smooth" });
-    };
-    const arrow = (dir: 1 | -1) => (
-      <button
-        type="button"
-        aria-label={dir > 0 ? (locale === "tr" ? "Sonraki kategori" : "Next category") : locale === "tr" ? "Önceki kategori" : "Previous category"}
-        onClick={() => page(dir)}
-        className={`absolute top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#d9a55a]/40 bg-[#0a0908]/85 text-[#e8b86a] backdrop-blur transition-opacity hover:border-[#d9a55a] ${dir > 0 ? "right-1.5" : "left-1.5"}`}
-      >
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d={dir > 0 ? "m9 6 6 6-6 6" : "m15 6-6 6 6 6"} />
-        </svg>
-      </button>
-    );
     return (
       <>
-        {more.left && arrow(-1)}
-        {more.right && arrow(1)}
         <div
-          ref={row}
-          onScroll={() => {
-            sync();
-            onScroll?.();
-          }}
+          ref={ref}
+          onScroll={onScroll}
           className="flex h-full snap-x snap-mandatory gap-0 overflow-x-auto overflow-y-hidden overscroll-x-contain px-[max(env(safe-area-inset-left),4px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {categories.map((c, ci) => (
@@ -67,7 +28,7 @@ export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory
               key={c.id}
               data-col={c.id}
               aria-label={c.label[locale]}
-              className={`flex h-full min-h-0 w-1/3 min-w-[118px] shrink-0 snap-start snap-always flex-col border-l border-[#d9a55a]/20 first:border-l-0 ${reduced ? "" : "deck-in"}`}
+              className={`flex h-full min-h-0 w-1/3 min-w-[118px] shrink-0 snap-start flex-col border-l border-[#d9a55a]/20 first:border-l-0 ${reduced ? "" : "deck-in"}`}
               style={reduced ? undefined : { animationDelay: `${Math.min(ci, 3) * 70}ms` }}
             >
               {/* the heading stays put; only the dishes below it scroll */}
@@ -81,7 +42,7 @@ export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory
               <ul
                 tabIndex={0}
                 aria-label={c.label[locale]}
-                className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-1.5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)] [scrollbar-color:rgba(217,165,90,0.35)_transparent] [scrollbar-width:thin] focus-visible:outline-none [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d9a55a]/35"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1.5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)] [scrollbar-color:rgba(217,165,90,0.35)_transparent] [scrollbar-width:thin] focus-visible:outline-none [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d9a55a]/35"
               >
                 {c.dishes.map((d) => (
                   <li key={d.id} className="mb-5 last:mb-0">
