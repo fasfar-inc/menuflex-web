@@ -9,32 +9,32 @@ import { CategoryIcon } from "./icons";
 
 /**
  * Categories side by side as independent panels, named by the pills above.
- * Each panel scrolls its own dishes (overscroll contained, so neither the page nor a
+ * The row never scrolls under a finger or the wheel (the pills move it), and
+ * each panel scrolls its own dishes (overscroll contained, so neither the page nor a
  * neighbour moves); the row of panels scrolls sideways when there are more
  * categories than fit, three to a screen.
  */
-export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory[]; locale: MenuLocale; reduced: boolean; onScroll?: () => void }>(
-  function MenuColumns({ categories, locale, reduced, onScroll }, ref) {
+export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory[]; locale: MenuLocale; reduced: boolean }>(
+  function MenuColumns({ categories, locale, reduced }, ref) {
     const [viewing, setViewing] = useState<Dish | null>(null);
     return (
       <>
         <div
           ref={ref}
-          onScroll={onScroll}
-          className="flex h-full snap-x snap-mandatory gap-0 overflow-x-auto overflow-y-hidden overscroll-x-contain px-[max(env(safe-area-inset-left),4px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex h-full touch-pan-y overflow-hidden px-[max(env(safe-area-inset-left),4px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {categories.map((c, ci) => (
             <section
               key={c.id}
               data-col={c.id}
               aria-label={c.label[locale]}
-              className={`flex h-full min-h-0 w-1/3 min-w-[118px] shrink-0 snap-start flex-col border-l border-[#d9a55a]/20 first:border-l-0 ${reduced ? "" : "deck-in"}`}
+              className={`flex h-full min-h-0 w-1/3 min-w-0 shrink-0 flex-col border-l border-[#d9a55a]/20 first:border-l-0 ${reduced ? "" : "deck-in"}`}
               style={reduced ? undefined : { animationDelay: `${Math.min(ci, 3) * 70}ms` }}
             >
               <ul
                 tabIndex={0}
                 aria-label={c.label[locale]}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1.5 pt-4 pb-[max(env(safe-area-inset-bottom),20px)] [scrollbar-color:rgba(217,165,90,0.35)_transparent] [scrollbar-width:thin] focus-visible:outline-none [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d9a55a]/35"
+                className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-1.5 pt-4 pb-[max(env(safe-area-inset-bottom),20px)] [scrollbar-color:rgba(217,165,90,0.35)_transparent] [scrollbar-width:thin] focus-visible:outline-none [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d9a55a]/35"
               >
                 {c.dishes.map((d) => (
                   <li key={d.id} className="mb-5 last:mb-0">

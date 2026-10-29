@@ -38,21 +38,30 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   // the wheel shows dishes with a photograph; a category with none yet is a plain list
   const pictured = (c: (typeof menu.categories)[number]) => c.dishes.filter((d) => d.photo);
   const onWheel = pictured(category);
-  // columns layout: every category is a panel; the pills scroll the row to one
+  // columns layout: three categories on screen at a time, chosen only with the
+  // pills (the row never moves under a finger); the three on screen are lit
   const columns = menu.layout === "columns";
   const colsRef = useRef<HTMLDivElement>(null);
+  const shown = Math.min(3, menu.categories.length);
+  const firstShown = Math.max(0, Math.min(cat, menu.categories.length - shown));
   const scrollToColumn = (i: number) => {
-    const el = colsRef.current?.querySelector<HTMLElement>(`[data-col="${menu.categories[i].id}"]`);
-    colsRef.current?.scrollTo({ left: el ? el.offsetLeft - colsRef.current.offsetLeft : 0, behavior: reduced ? "auto" : "smooth" });
-  };
-  // the leftmost panel in view is the active category
-  const onColumnsScroll = () => {
     const box = colsRef.current;
-    const first = box?.firstElementChild as HTMLElement | null;
-    if (!box || !first) return;
-    const i = Math.min(menu.categories.length - 1, Math.round(box.scrollLeft / first.offsetWidth));
-    if (i !== cat) setCat(i);
+    const start = Math.max(0, Math.min(i, menu.categories.length - shown));
+    const el = box?.querySelector<HTMLElement>(`[data-col="${menu.categories[start].id}"]`);
+    box?.scrollTo({ left: el ? el.offsetLeft - box.offsetLeft : 0, behavior: reduced ? "auto" : "smooth" });
   };
+
+  // keep the lit categories' columns lined up when the screen size changes
+  useEffect(() => {
+    if (!columns) return;
+    const box = colsRef.current;
+    const align = () => {
+      const el = box?.querySelector<HTMLElement>(`[data-col="${menu.categories[firstShown].id}"]`);
+      if (box && el) box.scrollLeft = el.offsetLeft - box.offsetLeft;
+    };
+    window.addEventListener("resize", align);
+    return () => window.removeEventListener("resize", align);
+  }, [columns, firstShown, menu.categories]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -203,7 +212,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
         <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 pt-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max min-w-[min(100%,560px)] justify-between gap-1">
             {menu.categories.map((c, i) => {
-              const on = i === cat;
+              const on = columns ? i >= firstShown && i < firstShown + shown : i === cat;
               return (
                 <button
                   key={c.id}
@@ -229,7 +238,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       {columns ? (
         // the categories as side-by-side panels, each scrolling on its own
         <main className="relative mt-2 min-h-0 flex-1 border-t border-[#d9a55a]/25">
-          <MenuColumns ref={colsRef} categories={menu.categories} locale={locale} reduced={reduced} onScroll={onColumnsScroll} />
+          <MenuColumns ref={colsRef} categories={menu.categories} locale={locale} reduced={reduced} />
         </main>
       ) : (
       /* the dish wheel */
