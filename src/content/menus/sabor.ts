@@ -201,10 +201,12 @@ export const sabor: RestaurantMenu = {
   demo: true,
   defaultLocale: "tr",
   locales: ["tr", "en"],
-  theme: { accent: "#d24b58", background: "#0d0b09" },
+  theme: { accent: "#d24b58", background: "#0a0908" },
+  layout: "columns",
   note: {
     en: "Gluten-free pasta on request, +₺160. Paella takes about 45 minutes to prepare.",
     tr: "Glutensiz makarna seçeneği +₺160. Paellanın hazırlanması yaklaşık 45 dakika sürer.",
   },
-  categories: [tapas, pasta, chicken, noodles, meat, paellaFish, salads, kids],
+  // starters, fish and meat first: the three columns a guest sees on opening
+  categories: [tapas, paellaFish, meat, pasta, chicken, noodles, salads, kids],
 };

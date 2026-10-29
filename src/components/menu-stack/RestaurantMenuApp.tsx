@@ -6,6 +6,7 @@ import type { MenuLocale, RestaurantMenu } from "@/content/menus/types";
 import { DishList } from "./DishList";
 import { DishWheel, MOTION_MS, REDUCED_MS } from "./DishWheel";
 import { MenuBackdrop } from "./MenuBackdrop";
+import { MenuColumns } from "./MenuColumns";
 import { Price } from "./Price";
 import { BurgerIcon, CategoryIcon, CloseIcon, WaveMark } from "./icons";
 import { menuStrings } from "./strings";
@@ -37,6 +38,21 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   // the wheel shows dishes with a photograph; a category with none yet is a plain list
   const pictured = (c: (typeof menu.categories)[number]) => c.dishes.filter((d) => d.photo);
   const onWheel = pictured(category);
+  // columns layout: every category is a panel; the pills scroll the row to one
+  const columns = menu.layout === "columns";
+  const colsRef = useRef<HTMLDivElement>(null);
+  const scrollToColumn = (i: number) => {
+    const el = colsRef.current?.querySelector<HTMLElement>(`[data-col="${menu.categories[i].id}"]`);
+    colsRef.current?.scrollTo({ left: el ? el.offsetLeft - colsRef.current.offsetLeft : 0, behavior: reduced ? "auto" : "smooth" });
+  };
+  // the leftmost panel in view is the active category
+  const onColumnsScroll = () => {
+    const box = colsRef.current;
+    const first = box?.firstElementChild as HTMLElement | null;
+    if (!box || !first) return;
+    const i = Math.min(menu.categories.length - 1, Math.round(box.scrollLeft / first.offsetWidth));
+    if (i !== cat) setCat(i);
+  };
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -79,6 +95,11 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   /** Move to another category (its first dish, or `at`), fading the wheel across. */
   const selectCategory = useCallback(
     (next: number, at = 0) => {
+      if (menu.layout === "columns") {
+        setCat(next);
+        scrollToColumn(next);
+        return;
+      }
       window.clearTimeout(switching.current);
       if (next === cat) {
         if (at !== dish) goDish(at);
@@ -95,7 +116,8 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       setLeaving(true);
       switching.current = window.setTimeout(go, SWITCH_MS);
     },
-    [cat, dish, goDish, reduced],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scrollToColumn only reads refs and props
+    [cat, dish, goDish, reduced, menu.layout],
   );
 
   // keep the active category in view in the bar
@@ -204,7 +226,13 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
         </div>
       </nav>
 
-      {/* the dish wheel */}
+      {columns ? (
+        // the categories as side-by-side panels, each scrolling on its own
+        <main className="relative mt-2 min-h-0 flex-1 border-t border-[#d9a55a]/25">
+          <MenuColumns ref={colsRef} categories={menu.categories} locale={locale} reduced={reduced} onScroll={onColumnsScroll} />
+        </main>
+      ) : (
+      /* the dish wheel */
       <main className="relative min-h-0 flex-1 pt-1 pb-[max(env(safe-area-inset-bottom),10px)]" role="tabpanel" aria-label={category.label[locale]}>
         <div key={category.id} className={`h-full ${leaving ? "deck-out" : "deck-in"}`}>
           {onWheel.length > 0 ? (
@@ -224,6 +252,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           )}
         </div>
       </main>
+      )}
 
       {overview && (
         <MenuOverview

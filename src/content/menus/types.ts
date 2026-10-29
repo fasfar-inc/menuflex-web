@@ -34,6 +34,8 @@ export type RestaurantMenu = {
   /** In the order the language switch shows them. */
   locales: MenuLocale[];
   categories: MenuCategory[];
+  /** "wheel" (default): one category at a time on the dish wheel. "columns": categories side by side, each scrolling on its own. */
+  layout?: "wheel" | "columns";
   note?: Localized;
   /** LIMAN's wave above the name; other restaurants show their logo, or nothing. */
   mark?: "wave";
