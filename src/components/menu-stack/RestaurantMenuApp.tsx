@@ -38,20 +38,12 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
   // the wheel shows dishes with a photograph; a category with none yet is a plain list
   const pictured = (c: (typeof menu.categories)[number]) => c.dishes.filter((d) => d.photo);
   const onWheel = pictured(category);
-  // columns layout: every category is a panel; the pills scroll the row to one
+  // columns layout: every category is a fixed column, all on screen
   const columns = menu.layout === "columns";
   const colsRef = useRef<HTMLDivElement>(null);
+  // picking a dish in the full menu brings that column's list to the top
   const scrollToColumn = (i: number) => {
-    const el = colsRef.current?.querySelector<HTMLElement>(`[data-col="${menu.categories[i].id}"]`);
-    colsRef.current?.scrollTo({ left: el ? el.offsetLeft - colsRef.current.offsetLeft : 0, behavior: reduced ? "auto" : "smooth" });
-  };
-  // the leftmost panel in view is the active category
-  const onColumnsScroll = () => {
-    const box = colsRef.current;
-    const first = box?.firstElementChild as HTMLElement | null;
-    if (!box || !first) return;
-    const i = Math.min(menu.categories.length - 1, Math.round(box.scrollLeft / first.offsetWidth));
-    if (i !== cat) setCat(i);
+    colsRef.current?.querySelector<HTMLElement>(`[data-col="${menu.categories[i].id}"] ul`)?.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
   };
 
   useEffect(() => {
@@ -231,7 +223,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
       {columns ? (
         // the categories as side-by-side panels, each scrolling on its own
         <main className="relative mt-2 min-h-0 flex-1 border-t border-[#d9a55a]/25">
-          <MenuColumns ref={colsRef} categories={menu.categories} locale={locale} reduced={reduced} onScroll={onColumnsScroll} />
+          <MenuColumns ref={colsRef} categories={menu.categories} locale={locale} reduced={reduced} />
         </main>
       ) : (
       /* the dish wheel */
