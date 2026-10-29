@@ -8,8 +8,8 @@ import { Price } from "./Price";
 import { CategoryIcon } from "./icons";
 
 /**
- * Categories side by side as independent panels. Each panel keeps its heading
- * and scrolls its own dishes (overscroll contained, so neither the page nor a
+ * Categories side by side as independent panels, named by the pills above.
+ * Each panel scrolls its own dishes (overscroll contained, so neither the page nor a
  * neighbour moves); the row of panels scrolls sideways when there are more
  * categories than fit, three to a screen.
  */
@@ -31,18 +31,10 @@ export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory
               className={`flex h-full min-h-0 w-1/3 min-w-[118px] shrink-0 snap-start flex-col border-l border-[#d9a55a]/20 first:border-l-0 ${reduced ? "" : "deck-in"}`}
               style={reduced ? undefined : { animationDelay: `${Math.min(ci, 3) * 70}ms` }}
             >
-              {/* the heading stays put; only the dishes below it scroll */}
-              <header className="shrink-0 px-2 pt-3 pb-2 text-center">
-                <CategoryIcon name={c.icon} className="mx-auto h-5 w-5 text-[#d9a55a]" />
-                <h2 className="mt-1.5 flex min-h-[2.4em] items-center justify-center font-display text-[clamp(13px,3.6vw,19px)] leading-tight font-semibold tracking-[0.16em] text-cream uppercase">
-                  {c.label[locale]}
-                </h2>
-                <span aria-hidden="true" className="mx-auto mt-2 block h-px w-10 bg-[linear-gradient(90deg,transparent,#d9a55a,transparent)]" />
-              </header>
               <ul
                 tabIndex={0}
                 aria-label={c.label[locale]}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1.5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)] [scrollbar-color:rgba(217,165,90,0.35)_transparent] [scrollbar-width:thin] focus-visible:outline-none [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d9a55a]/35"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-1.5 pt-4 pb-[max(env(safe-area-inset-bottom),20px)] [scrollbar-color:rgba(217,165,90,0.35)_transparent] [scrollbar-width:thin] focus-visible:outline-none [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d9a55a]/35"
               >
                 {c.dishes.map((d) => (
                   <li key={d.id} className="mb-5 last:mb-0">
