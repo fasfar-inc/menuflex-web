@@ -34,7 +34,7 @@ export const MenuColumns = forwardRef<HTMLDivElement, { categories: MenuCategory
               {/* the heading stays put; only the dishes below it scroll */}
               <header className="shrink-0 px-2 pt-3 pb-2 text-center">
                 <CategoryIcon name={c.icon} className="mx-auto h-5 w-5 text-[#d9a55a]" />
-                <h2 className="mt-1.5 flex min-h-[2.4em] items-center justify-center font-display text-[clamp(11.5px,3.1vw,19px)] leading-tight font-semibold tracking-[0.06em] [overflow-wrap:anywhere] sm:tracking-[0.16em] text-cream uppercase">
+                <h2 className="mt-1.5 flex min-h-[2.4em] items-center justify-center font-display text-[clamp(13px,3.6vw,19px)] leading-tight font-semibold tracking-[0.16em] text-cream uppercase">
                   {c.label[locale]}
                 </h2>
                 <span aria-hidden="true" className="mx-auto mt-2 block h-px w-10 bg-[linear-gradient(90deg,transparent,#d9a55a,transparent)]" />
