@@ -198,7 +198,8 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
         )}
       </header>
 
-      {/* sticky categories */}
+      {/* sticky categories; the columns layout names them on the columns instead */}
+      {!columns && (
       <nav aria-label={s.categories} className="relative z-10">
         <div ref={tabs} role="tablist" aria-label={s.categories} onKeyDown={onTabsKey} className="flex overflow-x-auto px-3 pt-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="mx-auto flex w-max min-w-[min(100%,560px)] justify-between gap-1">
@@ -225,6 +226,7 @@ export function RestaurantMenuApp({ menu }: { menu: RestaurantMenu }) {
           </div>
         </div>
       </nav>
+      )}
 
       {columns ? (
         // the categories as side-by-side panels, each scrolling on its own
